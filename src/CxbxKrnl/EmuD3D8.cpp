@@ -1040,7 +1040,7 @@ static DWORD WINAPI EmuCreateDeviceProxy(LPVOID)
 static void EmuVerifyResourceIsRegistered(XTL::X_D3DResource *pResource)
 {
     // 0xEEEEEEEE and 0xFFFFFFFF are somehow set in Halo :(
-    if(pResource->Lock != 0 && pResource->Lock != 0xEEEEEEEE && pResource->Lock != 0xFFFFFFFF)
+    if(pResource == 0 || pResource->Lock != 0 && pResource->Lock != 0xEEEEEEEE && pResource->Lock != 0xFFFFFFFF)
         return;
 
     // Already "Registered" implicitly
@@ -5944,8 +5944,8 @@ HRESULT WINAPI XTL::EmuIDirect3DTexture8_GetSurfaceLevel
 
     EmuVerifyResourceIsRegistered(pThis);
 
-//	if(pThis)
-//	{
+	if(pThis)
+	{
 		// if highest bit is set, this is actually a raw memory pointer (for YUY2 simulation)
 		if(IsSpecialResource(pThis->Data) && (pThis->Data & X_D3DRESOURCE_DATA_FLAG_YUVSURF))
 		{
@@ -5982,7 +5982,7 @@ HRESULT WINAPI XTL::EmuIDirect3DTexture8_GetSurfaceLevel
 				DbgPrintf("EmuD3D8 (0x%X): EmuIDirect3DTexture8_GetSurfaceLevel := 0x%.08X\n", GetCurrentThreadId(), (*ppSurfaceLevel)->EmuSurface8);
 			}
 		}
-//	}
+	}
 
     EmuSwapFS();   // XBox FS
 
