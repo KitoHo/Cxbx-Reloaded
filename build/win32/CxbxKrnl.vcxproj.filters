@@ -69,9 +69,6 @@
     <ClInclude Include="..\..\src\CxbxKrnl\EmuFS.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\CxbxKrnl\EmuLDT.h">
-      <Filter>Include</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\CxbxKrnl\EmuNtDll.h">
       <Filter>Include</Filter>
     </ClInclude>
@@ -319,9 +316,6 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\CxbxKrnl\EmuKrnl.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CxbxKrnl\EmuLDT.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\CxbxKrnl\EmuNtDll.cpp">

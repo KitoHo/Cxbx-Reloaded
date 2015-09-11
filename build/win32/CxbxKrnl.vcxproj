@@ -64,7 +64,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\..\import\OpenXDK;..\..\src;..\..\src\Common;..\..\src\Common\Win32;..\..\import\OpenXDK\include;..\..\import\DirectX8\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\src\Common;..\..\import\OpenXDK\include;..\..\src;..\..\src\Common\Win32;..\..\import\DirectX8\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;CXBXKRNL_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -175,7 +175,6 @@
     <ClInclude Include="..\..\src\CxbxKrnl\EmuDSound.h" />
     <ClInclude Include="..\..\src\CxbxKrnl\EmuFile.h" />
     <ClInclude Include="..\..\src\CxbxKrnl\EmuFS.h" />
-    <ClInclude Include="..\..\src\CxbxKrnl\EmuLDT.h" />
     <ClInclude Include="..\..\src\CxbxKrnl\EmuNtDll.h" />
     <ClInclude Include="..\..\src\CxbxKrnl\EmuShared.h" />
     <ClInclude Include="..\..\src\CxbxKrnl\EmuXactEng.h" />
@@ -267,7 +266,6 @@
     <ClCompile Include="..\..\src\CxbxKrnl\EmuFile.cpp" />
     <ClCompile Include="..\..\src\CxbxKrnl\EmuFS.cpp" />
     <ClCompile Include="..\..\src\CxbxKrnl\EmuKrnl.cpp" />
-    <ClCompile Include="..\..\src\CxbxKrnl\EmuLDT.cpp" />
     <ClCompile Include="..\..\src\CxbxKrnl\EmuNtDll.cpp" />
     <ClCompile Include="..\..\src\CxbxKrnl\EmuXactEng.cpp" />
     <ClCompile Include="..\..\src\CxbxKrnl\EmuXapi.cpp" />
