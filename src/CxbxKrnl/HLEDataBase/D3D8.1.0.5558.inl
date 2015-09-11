@@ -318,31 +318,31 @@ SOOVPA<11> IDirect3DDevice8_UpdateOverlay_1_0_5558 =
 SOOVPA<12> IDirect3DDevice8_GetOverlayUpdateStatus_1_0_5558 =
 {
     0,  // Large == 0
-    12, // Count == 12
+    10, // Count == 10
 
     -1, // XRef Not Saved
     0,  // XRef Not Used
 
     {
-        // IDirect3DDevice8_GetOverlayUpdateStatus+0x05 : mov ecx, [eax+0x2400]
+        // IDirect3DDevice8_GetOverlayUpdateStatus+0x05 : mov ecx, [eax+0x24xx]
         { 0x05, 0x8B }, // (Offset,Value)-Pair #1
         { 0x06, 0x88 }, // (Offset,Value)-Pair #2
-        { 0x07, 0x00 }, // (Offset,Value)-Pair #3
-        { 0x08, 0x24 }, // (Offset,Value)-Pair #4
+     // { 0x07, 0x00 }, // The offset from EAX has been seen as 2400 (5558) and 2410 (5659)
+        { 0x08, 0x24 }, // (Offset,Value)-Pair #3
 
-        // IDirect3DDevice8_GetOverlayUpdateStatus+0x0C : mov esi, [eax+0x1DD8]
-        { 0x0C, 0x8B }, // (Offset,Value)-Pair #5
-        { 0x0D, 0xB0 }, // (Offset,Value)-Pair #6
-        { 0x0E, 0xD8 }, // (Offset,Value)-Pair #7
-        { 0x0F, 0x1D }, // (Offset,Value)-Pair #8
+        // IDirect3DDevice8_GetOverlayUpdateStatus+0x0C : mov esi, [eax+0x1Dxx]
+        { 0x0C, 0x8B }, // (Offset,Value)-Pair #4
+        { 0x0D, 0xB0 }, // (Offset,Value)-Pair #5
+     // { 0x0E, 0xD8 }, // // The offset from EAX has been seen as 0x1DD8 (5558) and 0x1DE8 (5659)
+        { 0x0F, 0x1D }, // (Offset,Value)-Pair #6
 
         // IDirect3DDevice8_GetOverlayUpdateStatus+0x16 : setnz dl
-        { 0x16, 0x0F }, // (Offset,Value)-Pair #9
-        { 0x17, 0x95 }, // (Offset,Value)-Pair #10
-        { 0x18, 0xC2 }, // (Offset,Value)-Pair #11
+        { 0x16, 0x0F }, // (Offset,Value)-Pair #7
+        { 0x17, 0x95 }, // (Offset,Value)-Pair #8
+        { 0x18, 0xC2 }, // (Offset,Value)-Pair #9
 
         // IDirect3DDevice8_GetOverlayUpdateStatus+0x1C : retn
-        { 0x1C, 0xC3 }, // (Offset,Value)-Pair #12
+        { 0x1C, 0xC3 }, // (Offset,Value)-Pair #10
     }
 };
 
@@ -578,11 +578,12 @@ SOOVPA<10> IDirect3DDevice8_DrawIndexedVerticesUP_1_0_5558 =
         { 0x4C, 0x00 }, // (Offset,Value)-Pair #3
         { 0x4D, 0x08 }, // (Offset,Value)-Pair #4
 
-        // IDirect3DDevice8_DrawIndexedVerticesUP+0x5C : lea edx, [edi+0xBC4]
+        // IDirect3DDevice8_DrawIndexedVerticesUP+0x5C : lea edx, [edi+0xBxx]
         { 0x5C, 0x8D }, // (Offset,Value)-Pair #5
         { 0x5D, 0x96 }, // (Offset,Value)-Pair #6
-        { 0x5E, 0xC4 }, // (Offset,Value)-Pair #7
-        { 0x5F, 0x0B }, // (Offset,Value)-Pair #8
+     // { 0x5E, 0xC4 }, // The offset from EDI has been seen as BC4 (5558) and BD4 (5659)
+        { 0x5F, 0x0B }, // (Offset,Value)-Pair #7
+        { 0x60, 0x00 }, // (Offset,Value)-Pair #8
 
         // IDirect3DDevice8_DrawIndexedVerticesUP+0x6A : mov eax, 0x10
         { 0x6A, 0xB8 }, // (Offset,Value)-Pair #9
@@ -950,7 +951,7 @@ SOOVPA<11> IDirect3DDevice8_CreatePixelShader_1_0_5558 =
     0,  // XRef Not Used
 
     {
-        // IDirect3DDevice8_CreatePixelShader+0x00 : push 0xFC
+        // IDirect3DDevice8_CreatePixelShader+0x05 : push 0xFC
         { 0x05, 0x68 }, // (Offset,Value)-Pair #1
         { 0x06, 0xFC }, // (Offset,Value)-Pair #2
 
@@ -3277,6 +3278,16 @@ OOVPATable D3D8_1_0_5558[] =
         "EmuIDirect3DDevice8_EndStateBlock"
         #endif
     },
+	// IDirect3DDevice8_GetDeviceCaps (* unchanged since 3925 *)
+    {
+        (OOVPA*)&IDirect3DDevice8_GetDeviceCaps_1_0_3925, 
+        	
+        XTL::EmuIDirect3DDevice8_GetDeviceCaps,
+        
+        #ifdef _DEBUG_TRACE
+        "EmuIDirect3DDevice8_GetDeviceCaps"
+        #endif
+    },
 	// IDirect3DDevice8::SetRenderState_FrontFace (* unchanged since 4134 *)
     {
         (OOVPA*)&IDirect3DDevice8_SetRenderState_FrontFace_1_0_4134,
@@ -3413,6 +3424,16 @@ OOVPATable D3D8_1_0_5558[] =
 
 		#ifdef _DEBUG_TRACE
 		"EmuIDirect3DDevice8_FlushVertexCache"
+		#endif
+	},
+	// IDirect3DDevice8::EnableOverlay (* unchanged since 4361 *)
+	{
+		(OOVPA*)&IDirect3DDevice8_EnableOverlay_1_0_4361,
+		
+ 		XTL::EmuIDirect3DDevice8_EnableOverlay,
+		
+		#ifdef _DEBUG_TRACE
+		"EmuIDirect3DDevice8_EnableOverlay"
 		#endif
 	},
 	// D3DDevice_SetRenderState_LogicOp
@@ -3678,16 +3699,6 @@ OOVPATable D3D8_1_0_5558[] =
 
         #ifdef _DEBUG_TRACE
 		"EmuIDirect3DDevice8_SetRenderTargetFast"
-        #endif
-    },
-	// IDirect3DDevice8::EnableOverlay (* unchanged since 4361 *)
-    {
-        (OOVPA*)&IDirect3DDevice8_EnableOverlay_1_0_4361,
-
-        XTL::EmuIDirect3DDevice8_EnableOverlay,
-
-        #ifdef _DEBUG_TRACE
-        "EmuIDirect3DDevice8_EnableOverlay"
         #endif
     },
 };

@@ -425,8 +425,8 @@ static const char* OReg_Name[] =
     "oD1",
     "oFog",
     "oPts",
-    "oD0", // HACK: oBx -> oDx (Outrun2)...
-    "oD1",
+    "oB0",
+    "oB1",
     "oT0",
     "oT1",
     "oT2",

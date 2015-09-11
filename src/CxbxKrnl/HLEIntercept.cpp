@@ -33,6 +33,7 @@
 // ******************************************************************
 #define _CXBXKRNL_INTERNAL
 
+#include <cmath>
 #include "CxbxKrnl.h"
 #include "Emu.h"
 #include "EmuFS.h"
@@ -261,7 +262,7 @@ void EmuHLEIntercept(Xbe::LibraryVersion *pLibraryVersion, Xbe::Header *pXbeHead
                     }
 
 					// Redirect other highly similar DSOUND library versions
-					if(/*BuildVersion == 4361 ||*/ BuildVersion == 4400 || BuildVersion == 4432 || 
+					if(BuildVersion == 4361 || BuildVersion == 4400 || BuildVersion == 4432 || 
 						BuildVersion == 4531 )
 						BuildVersion = 4627;
                 }
@@ -652,7 +653,7 @@ void EmuHLEIntercept(Xbe::LibraryVersion *pLibraryVersion, Xbe::Header *pXbeHead
         DbgPrintf("HLE: Resolved %d cross reference(s)\n", OrigUnResolvedXRefs - UnResolvedXRefs);
     }
 
-    vCacheInp.empty();
+    vCacheInp.clear();
 
     //
     // update cache file
@@ -693,7 +694,7 @@ void EmuHLEIntercept(Xbe::LibraryVersion *pLibraryVersion, Xbe::Header *pXbeHead
         fclose(pCacheFile);
     }
 */
-    vCacheOut.empty();
+    vCacheOut.clear();
 
     DbgPrintf("\n");
 

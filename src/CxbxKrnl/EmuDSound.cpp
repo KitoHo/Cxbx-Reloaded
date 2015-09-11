@@ -109,7 +109,7 @@ static XTL::LPDIRECTSOUND8          g_pDSound8 = NULL;
 static int                          g_pDSound8RefCount = 0;
 static XTL::X_CDirectSoundBuffer   *g_pDSoundBufferCache[SOUNDBUFFER_CACHE_SIZE];
 static XTL::X_CDirectSoundStream   *g_pDSoundStreamCache[SOUNDSTREAM_CACHE_SIZE];
-static int							g_bDSoundCreateCalled = false;
+static int							g_bDSoundCreateCalled = FALSE;
 
 // periodically update sound buffers
 static void HackUpdateSoundBuffers()
@@ -1451,7 +1451,7 @@ HRESULT WINAPI XTL::EmuIDirectSoundBuffer8_Play
            ");\n",
            GetCurrentThreadId(), pThis, dwReserved1, dwReserved2, dwFlags);
 
-    if(dwFlags & ~(X_DSBPLAY_LOOPING | X_DSBPLAY_FROMSTART))
+    if(dwFlags & ~(X_DSBPLAY_LOOPING | X_DSBPLAY_FROMSTART | X_DSBPLAY_SYNCHPLAYBACK))
         CxbxKrnlCleanup("Unsupported Playing Flags");
 
     // rewind buffer
@@ -1618,10 +1618,10 @@ HRESULT WINAPI XTL::EmuDirectSoundCreateStream
 
     DbgPrintf("EmuDSound (0x%X): EmuDirectSoundCreateStream\n"
            "(\n"
-           "   pdssd                     : 0x%.08X\n"
+           "   pdssd                     : 0x%.08X (pdssd->dwFlags : 0x%.08X)\n"
            "   ppStream                  : 0x%.08X\n"
            ");\n",
-           GetCurrentThreadId(), pdssd, ppStream);
+           GetCurrentThreadId(), pdssd, pdssd->dwFlags, ppStream);
 
     // TODO: Garbage Collection
     *ppStream = new X_CDirectSoundStream();
@@ -1983,14 +1983,6 @@ HRESULT WINAPI XTL::EmuCDirectSoundStream_Process
 
     if(pThis->EmuDirectSoundBuffer8 != NULL)
     {
-		// TEST: Wait for this sound buffer to finish?
-		/*DWORD dwStatus;
-
-		do
-		{
-			pThis->EmuDirectSoundBuffer8->GetStatus( &dwStatus );
-		} while( dwStatus == DSBSTATUS_PLAYING );*/
-
         // update buffer data cache
         pThis->EmuBuffer = pInputBuffer->pvBuffer;
 
@@ -2039,7 +2031,10 @@ HRESULT WINAPI XTL::EmuCDirectSoundStream_Flush(X_CDirectSoundStream *pThis)
 {
     EmuSwapFS();   // Win2k/XP FS
 
-    DbgPrintf("EmuDSound (0x%X): EmuCDirectSoundStream_Flush();\n",
+    DbgPrintf("EmuDSound (0x%X): EmuCDirectSoundStream_Flush\n"
+		   "(\n"
+		   "   pThis           : 0x%.08X\n"
+		   ");\n",
            GetCurrentThreadId(), pThis);
 
     // TODO: Actually Flush
@@ -2056,8 +2051,11 @@ HRESULT WINAPI XTL::EmuCDirectSound_SynchPlayback(PVOID pUnknown)
 {
     EmuSwapFS();   // Win2k/XP FS
 
-    DbgPrintf("EmuDSound (0x%X): EmuCDirectSound_SynchPlayback(0x%.08X);\n",
-           GetCurrentThreadId());
+    DbgPrintf("EmuDSound (0x%X): EmuCDirectSound_SynchPlayback\n"
+		   "(\n"
+		   "   pUnknown           : 0x%.08X\n"
+		   ");\n",
+		   GetCurrentThreadId(), pUnknown);
 
     EmuSwapFS();   // XBox FS
 
@@ -3359,11 +3357,11 @@ extern "C" HRESULT __stdcall XTL::EmuIDirectSoundBuffer8_PlayEx
     if(pBuffer->EmuDirectSoundBuffer8 == 0)
         EmuWarning("pBuffer->EmuDirectSoundBuffer8 == 0");
 
-    EmuWarning("PlayEx not yet implemented!");
+//    EmuWarning("PlayEx not yet implemented!");
 
 	// TODO: Handle other non-PC standard flags
-//	DWORD dwPCFlags = ( dwFlags & DSBPLAY_LOOPING ) ? DSBPLAY_LOOPING : 0;
-//	HRESULT hr = pBuffer->EmuDirectSoundBuffer8->Play( 0, 0, dwPCFlags );
+	DWORD dwPCFlags = ( dwFlags & DSBPLAY_LOOPING ) ? DSBPLAY_LOOPING : 0;
+	HRESULT hr = pBuffer->EmuDirectSoundBuffer8->Play( 0, 0, dwPCFlags );
 
     EmuSwapFS();   // XBox FS
 
@@ -3781,7 +3779,7 @@ HRESULT WINAPI XTL::EmuIDirectSoundBuffer8_SetNotificationPositions
            ");\n",
            GetCurrentThreadId(), pThis, dwNotifyCount, paNotifies);
 
-	HRESULT hr;
+	HRESULT hr = DSERR_INVALIDPARAM;
 
 	// If we have a valid buffer, query a PC IDirectSoundNotify pointer and
 	// use the paramaters as is since they are directly compatible, then release
@@ -3893,7 +3891,7 @@ HRESULT WINAPI XTL::EmuXFileCreateMediaObjectAsync
 		   "   dwMaxPackets              : 0x%.08X\n"
            "   ppMediaObject             : 0x%.08X\n"
            ");\n",
-           GetCurrentThreadId(), hFile, ppMediaObject);
+           GetCurrentThreadId(), hFile, dwMaxPackets, ppMediaObject);
 
 	// TODO: Implement
 

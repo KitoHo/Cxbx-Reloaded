@@ -1061,7 +1061,9 @@ static unsigned int WINAPI PCSTProxy
     uint32 StartContext2 = (uint32)iPCSTProxyParam->StartContext2;
     uint32 StartRoutine  = (uint32)iPCSTProxyParam->StartRoutine;
     BOOL   StartSuspended = (BOOL)iPCSTProxyParam->StartSuspended;
+    HANDLE hStartedEvent = (HANDLE)iPCSTProxyParam->hStartedEvent;
 
+    // Once deleted, unable to directly access iPCSTProxyParam in remainder of function.
     delete iPCSTProxyParam;
 
     DbgPrintf("EmuKrnl (0x%X): PCSTProxy\n"
@@ -1088,7 +1090,7 @@ static unsigned int WINAPI PCSTProxy
 			if(pfnNotificationRoutine == NULL)
 				continue;
 
-			DbgPrintf("EmKrnl (0x%X): Calling pfnNotificationRoutine[%d] (0x%.08X)\n", g_iThreadNotificationCount, GetCurrentThreadId(), pfnNotificationRoutine);
+			DbgPrintf("EmuKrnl (0x%X): Calling pfnNotificationRoutine[%d] (0x%.08X)\n", g_iThreadNotificationCount, GetCurrentThreadId(), pfnNotificationRoutine);
 
 			EmuSwapFS();   // Xbox FS
 
@@ -1101,7 +1103,7 @@ static unsigned int WINAPI PCSTProxy
     // use the special calling convention
     __try
     {
-        SetEvent(iPCSTProxyParam->hStartedEvent);
+        SetEvent(hStartedEvent);
 
         EmuSwapFS();   // Xbox FS
 
@@ -1135,7 +1137,7 @@ callComplete:
 			if(pfnNotificationRoutine == NULL)
 				continue;
 
-			DbgPrintf("EmKrnl (0x%X): Calling pfnNotificationRoutine[%d] (0x%.08X)\n", g_iThreadNotificationCount, GetCurrentThreadId(), pfnNotificationRoutine);
+			DbgPrintf("EmuKrnl (0x%X): Calling pfnNotificationRoutine[%d] (0x%.08X)\n", g_iThreadNotificationCount, GetCurrentThreadId(), pfnNotificationRoutine);
 
 			EmuSwapFS();   // Xbox FS
 
@@ -1161,6 +1163,8 @@ XBSYSAPI EXPORTNUM(1) xboxkrnl::PVOID NTAPI xboxkrnl::AvGetSavedDataAddress()
 	EmuSwapFS();	// Win2k/XP FS
 
 	DbgPrintf("EmuKrnl (0x%X): AvGetSavedDataAddress();\n", GetCurrentThreadId() );
+
+	__asm int 3;
 
 	// Allocate a buffer the size of the screen buffer and return that.
 	// TODO: Fill this buffer with the contents of the front buffer.
@@ -1203,6 +1207,34 @@ XBSYSAPI EXPORTNUM(1) xboxkrnl::PVOID NTAPI xboxkrnl::AvGetSavedDataAddress()
 	EmuSwapFS();	// Xbox FS
 
 	return NULL;//g_pPersistedData;
+}
+
+// ******************************************************************
+// * 0x0002 AvSendTVEncoderOption()
+// ******************************************************************
+XBSYSAPI EXPORTNUM(2) VOID NTAPI xboxkrnl::AvSendTVEncoderOption
+(
+    IN  PVOID   RegisterBase,
+    IN  ULONG   Option,
+    IN  ULONG   Param,
+    OUT ULONG   *Result
+)
+{
+	EmuSwapFS();	// Win2k/XP FS
+
+	DbgPrintf("EmuKrnl (0x%X): AvSendTVEncoderOption\n"
+           "(\n"
+           "   RegisterBase       : 0x%.08X\n"
+		   "   Option             : 0x%.08X\n"
+		   "   Param              : 0x%.08X\n"
+		   "   Result             : 0x%.08X\n"
+           ");\n",
+           GetCurrentThreadId(), RegisterBase, Option, Param, Result);
+
+	// TODO: What does this do?
+	EmuWarning( "AvSendTVEncoderOption ignored!" );
+
+	EmuSwapFS();   // Xbox FS
 }
 
 // ******************************************************************
@@ -1290,7 +1322,7 @@ XBSYSAPI EXPORTNUM(14) xboxkrnl::PVOID NTAPI xboxkrnl::ExAllocatePool
            ");\n",
            GetCurrentThreadId(), NumberOfBytes);
 
-    PVOID pRet = CxbxMalloc(NumberOfBytes);
+    PVOID pRet = ExAllocatePoolWithTag(NumberOfBytes, (ULONG)"enoN");
 
     EmuSwapFS();   // Xbox FS
 
@@ -1327,137 +1359,6 @@ XBSYSAPI EXPORTNUM(15) xboxkrnl::PVOID NTAPI xboxkrnl::ExAllocatePoolWithTag
 }
 
 // ******************************************************************
-// * 0x0018 ExQueryNonVolatileSetting
-// ******************************************************************
-XBSYSAPI EXPORTNUM(24) xboxkrnl::NTSTATUS NTAPI xboxkrnl::ExQueryNonVolatileSetting
-(
-    IN  DWORD               ValueIndex,
-    OUT DWORD              *Type,
-    OUT PUCHAR              Value,
-    IN  SIZE_T              ValueLength,
-    OUT PSIZE_T             ResultLength OPTIONAL
-)
-{
-    EmuSwapFS();   // Win2k/XP FS
-
-    DbgPrintf("EmuKrnl (0x%X): ExQueryNonVolatileSetting\n"
-           "(\n"
-           "   ValueIndex          : 0x%.08X\n"
-           "   Type                : 0x%.08X\n"
-           "   Value               : 0x%.08X\n"
-           "   ValueLength         : 0x%.08X\n"
-           "   ResultLength        : 0x%.08X\n"
-           ");\n",
-           GetCurrentThreadId(), ValueIndex, Type, Value, ValueLength, ResultLength);
-
-    // handle eeprom read
-    switch(ValueIndex)
-    {
-        // Factory Game Region
-        case 0x104:
-        {
-            // TODO: configurable region or autodetect of some sort
-            if(Type != 0)
-                *Type = 0x04;
-
-            if(Value != 0)
-                *Value = 0x01;  // North America
-
-            if(ResultLength != 0)
-                *ResultLength = 0x04;
-        }
-        break;
-
-        // Factory AC Region
-        case 0x103:
-        {
-            // TODO: configurable region or autodetect of some sort
-            if(Type != 0)
-                *Type = 0x04;
-
-            if(Value != 0)
-                *Value = 0x01; // NTSC_M
-
-            if(ResultLength != 0)
-                *ResultLength = 0x04;
-        }
-        break;
-
-        // Language
-        case 0x007:
-        {
-            // TODO: configurable language or autodetect of some sort
-            if(Type != 0)
-                *Type = 0x04;
-
-            if(Value != 0)
-                *Value = 0x01;  // English
-
-            if(ResultLength != 0)
-                *ResultLength = 0x04;
-        }
-        break;
-
-        // Video Flags
-        case 0x008:
-        {
-            // TODO: configurable video flags or autodetect of some sort
-            if(Type != 0)
-                *Type = 0x04;
-
-            if(Value != 0)
-                *Value = 0x10;  // Letterbox
-
-            if(ResultLength != 0)
-                *ResultLength = 0x04;
-        }
-        break;
-
-        // Audio Flags
-        case 0x009:
-        {
-            if(Type != 0)
-                *Type = 0x04;
-
-            if(Value != 0)
-                *Value = 0;
-
-            if(ResultLength != 0)
-                *ResultLength = 0x04;
-        }
-
-        case EEPROM_MISC:
-        {
-            if(Type != 0)
-                *Type  = 0x04;
-
-            if(Value != 0)
-                *Value = 0;
-
-            if(ResultLength != 0)
-                *ResultLength = 0x04;
-        }
-        break;
-
-        /* Timezone info
-        case 0x0FF:
-        {
-            _asm int 3;
-        }
-        break;
-        //*/
-
-        default:
-            EmuWarning("ExQueryNonVolatileSetting unknown ValueIndex (%d)", ValueIndex);
-            break;
-    }
-
-    EmuSwapFS();   // Xbox FS
-
-    return STATUS_SUCCESS;
-}
-
-// ******************************************************************
 // * 0x0019 - ExReadWriteRefurbInfo
 // ******************************************************************
 XBSYSAPI EXPORTNUM(25) xboxkrnl::NTSTATUS NTAPI xboxkrnl::ExReadWriteRefurbInfo
@@ -1486,6 +1387,159 @@ XBSYSAPI EXPORTNUM(25) xboxkrnl::NTSTATUS NTAPI xboxkrnl::ExReadWriteRefurbInfo
 }
 
 // ******************************************************************
+// * 0x0011 ExFreePool
+// ******************************************************************
+XBSYSAPI EXPORTNUM(17) VOID NTAPI xboxkrnl::ExFreePool
+(
+	IN PVOID	P
+)
+{
+	EmuSwapFS();	// Win2k/XP FS
+
+	DbgPrintf("EmuKrnl (0x%X): ExFreePool\n"
+		"(\n"
+		"   P                  : 0x%.08X\n"
+		");\n",
+		GetCurrentThreadId(), P);
+
+	CxbxFree(P);
+
+	EmuSwapFS();	// Xbox FS
+}
+
+
+// ******************************************************************
+// * 0x0018 ExQueryNonVolatileSetting
+// ******************************************************************
+XBSYSAPI EXPORTNUM(24) xboxkrnl::NTSTATUS NTAPI xboxkrnl::ExQueryNonVolatileSetting
+(
+	IN  DWORD               ValueIndex,
+	OUT DWORD              *Type,
+	OUT PUCHAR              Value,
+	IN  SIZE_T              ValueLength,
+	OUT PSIZE_T             ResultLength OPTIONAL
+	)
+{
+	EmuSwapFS();   // Win2k/XP FS
+
+	DbgPrintf("EmuKrnl (0x%X): ExQueryNonVolatileSetting\n"
+		"(\n"
+		"   ValueIndex          : 0x%.08X\n"
+		"   Type                : 0x%.08X\n"
+		"   Value               : 0x%.08X\n"
+		"   ValueLength         : 0x%.08X\n"
+		"   ResultLength        : 0x%.08X\n"
+		");\n",
+		GetCurrentThreadId(), ValueIndex, Type, Value, ValueLength, ResultLength);
+
+	// handle eeprom read
+	switch (ValueIndex)
+	{
+		// Factory Game Region
+	case 0x104:
+	{
+		// TODO: configurable region or autodetect of some sort
+		if (Type != 0)
+			*Type = 0x04;
+
+		if (Value != 0)
+			*Value = 0x01;  // North America
+
+		if (ResultLength != 0)
+			*ResultLength = 0x04;
+	}
+	break;
+
+	// Factory AC Region
+	case 0x103:
+	{
+		// TODO: configurable region or autodetect of some sort
+		if (Type != 0)
+			*Type = 0x04;
+
+		if (Value != 0)
+			*Value = 0x01; // NTSC_M
+
+		if (ResultLength != 0)
+			*ResultLength = 0x04;
+	}
+	break;
+
+	// Language
+	case 0x007:
+	{
+		// TODO: configurable language or autodetect of some sort
+		if (Type != 0)
+			*Type = 0x04;
+
+		if (Value != 0)
+			*Value = 0x01;  // English
+
+		if (ResultLength != 0)
+			*ResultLength = 0x04;
+	}
+	break;
+
+	// Video Flags
+	case 0x008:
+	{
+		// TODO: configurable video flags or autodetect of some sort
+		if (Type != 0)
+			*Type = 0x04;
+
+		if (Value != 0)
+			*Value = 0x10;  // Letterbox
+
+		if (ResultLength != 0)
+			*ResultLength = 0x04;
+	}
+	break;
+
+	// Audio Flags
+	case 0x009:
+	{
+		if (Type != 0)
+			*Type = 0x04;
+
+		if (Value != 0)
+			*Value = 0;
+
+		if (ResultLength != 0)
+			*ResultLength = 0x04;
+	}
+
+	case EEPROM_MISC:
+	{
+		if (Type != 0)
+			*Type = 0x04;
+
+		if (Value != 0)
+			*Value = 0;
+
+		if (ResultLength != 0)
+			*ResultLength = 0x04;
+	}
+	break;
+
+	/* Timezone info
+	case 0x0FF:
+	{
+	_asm int 3;
+	}
+	break;
+	//*/
+
+	default:
+		EmuWarning("ExQueryNonVolatileSetting unknown ValueIndex (%d)", ValueIndex);
+		break;
+	}
+
+	EmuSwapFS();   // Xbox FS
+
+	return STATUS_SUCCESS;
+}
+
+// ******************************************************************
 // * 0x001D - ExSaveNonVolatileSetting
 // ******************************************************************
 XBSYSAPI EXPORTNUM(29) xboxkrnl::NTSTATUS NTAPI xboxkrnl::ExSaveNonVolatileSetting
@@ -1498,7 +1552,7 @@ XBSYSAPI EXPORTNUM(29) xboxkrnl::NTSTATUS NTAPI xboxkrnl::ExSaveNonVolatileSetti
 {
 	EmuSwapFS();   // Win2k/XP FS
 
-    DbgPrintf("EmuKrnl (0x%X): ExQueryNonVolatileSetting\n"
+    DbgPrintf("EmuKrnl (0x%X): ExSaveNonVolatileSetting\n"
            "(\n"
            "   ValueIndex          : 0x%.08X\n"
            "   Type                : 0x%.08X\n"
@@ -1603,6 +1657,40 @@ XBSYSAPI EXPORTNUM(47) VOID NTAPI xboxkrnl::HalRegisterShutdownNotification
 }
 
 // ******************************************************************
+// * 0x002D - HalReadSMBusValue
+// ******************************************************************
+XBSYSAPI EXPORTNUM(45) xboxkrnl::NTSTATUS NTAPI xboxkrnl::HalReadSMBusValue
+(
+	IN  UCHAR               Address,
+	IN  UCHAR               Command,
+	IN  BOOLEAN             ReadWord,
+	OUT PULONG              DataValue
+	)
+{
+	EmuSwapFS();   // Win2k/XP FS
+
+	DbgPrintf("EmuKrnl (0x%X): HalReadSMBusValue\n"
+		"(\n"
+		"   Address             : 0x%.08X\n"
+		"   Command             : 0x%.08X\n"
+		"   ReadWord            : 0x%.08X\n"
+		"   DataValue           : 0x%.08X\n"
+		");\n",
+		GetCurrentThreadId(), Address, Command, ReadWord, DataValue);
+
+	if (ReadWord) {
+		// Write UCHAR
+	}
+	else {
+		// Write BYTE
+	}
+
+	EmuSwapFS();	// Xbox FS
+
+	return STATUS_SUCCESS;
+}
+
+// ******************************************************************
 // * 0x0031 - HalReturnToFirmware
 // ******************************************************************
 XBSYSAPI EXPORTNUM(49) VOID DECLSPEC_NORETURN xboxkrnl::HalReturnToFirmware
@@ -1624,6 +1712,35 @@ XBSYSAPI EXPORTNUM(49) VOID DECLSPEC_NORETURN xboxkrnl::HalReturnToFirmware
 		CxbxKrnlCleanup("Xbe has rebooted : HalReturnToFirmware(%d)", Routine);
 
 	EmuSwapFS(); // Xbox FS
+}
+
+// ******************************************************************
+// * 0x0032 - HalWriteSMBusValue
+// ******************************************************************
+XBSYSAPI EXPORTNUM(50) xboxkrnl::NTSTATUS NTAPI xboxkrnl::HalWriteSMBusValue
+(
+    IN  UCHAR               Address,
+    IN  UCHAR               Command,
+    IN  BOOLEAN             WriteWord,
+    IN  ULONG               DataValue
+)
+{
+	EmuSwapFS();   // Win2k/XP FS
+
+    DbgPrintf("EmuKrnl (0x%X): HalWriteSMBusValue\n"
+           "(\n"
+           "   Address             : 0x%.08X\n"
+           "   Command             : 0x%.08X\n"
+           "   WriteWord           : 0x%.08X\n"
+           "   DataValue           : 0x%.08X\n"
+           ");\n",
+           GetCurrentThreadId(), Address, Command, WriteWord, DataValue);
+
+	// TODO: Later.
+
+	EmuSwapFS();	// Xbox FS
+
+	return STATUS_SUCCESS;
 }
 
 // ******************************************************************
@@ -1668,7 +1785,7 @@ XBSYSAPI EXPORTNUM(66) xboxkrnl::NTSTATUS NTAPI xboxkrnl::IoCreateFile
 
     EmuSwapFS();   // Xbox FS
 
-    return STATUS_SUCCESS;
+    return ret;
 }
 
 // ******************************************************************
@@ -1772,16 +1889,16 @@ XBSYSAPI EXPORTNUM(95) VOID NTAPI xboxkrnl::KeBugCheck
 // ******************************************************************
 XBSYSAPI EXPORTNUM(98) xboxkrnl::LONG NTAPI xboxkrnl::KeConnectInterrupt
 (
-    IN PKINTERRUPT  InterruptObject
-)
+	IN PKINTERRUPT  InterruptObject
+	)
 {
 	EmuSwapFS();	// Win2k/XP FS
 
 	DbgPrintf("EmuKrnl (0x%X): KeConnectInterrupt\n"
-			"(\n"
-			"   InterruptObject   : 0x%.08X\n"
-			");\n",
-			GetCurrentThreadId(), InterruptObject);
+		"(\n"
+		"   InterruptObject   : 0x%.08X\n"
+		");\n",
+		GetCurrentThreadId(), InterruptObject);
 
 	EmuSwapFS();	// Xbox FS
 
@@ -1800,13 +1917,13 @@ XBSYSAPI EXPORTNUM(99) xboxkrnl::NTSTATUS NTAPI xboxkrnl::KeDelayExecutionThread
 {
     EmuSwapFS();   // Win2k/XP FS
 
-    /*DbgPrintf("EmuKrnl (0x%X): KeDelayExecutionThread\n"
+    DbgPrintf("EmuKrnl (0x%X): KeDelayExecutionThread\n"
            "(\n"
            "   WaitMode            : 0x%.08X\n"
            "   Alertable           : 0x%.08X\n"
            "   Interval            : 0x%.08X (%I64d)\n"
            ");\n",
-           GetCurrentThreadId(), WaitMode, Alertable, Interval, Interval == 0 ? 0 : Interval->QuadPart);*/
+           GetCurrentThreadId(), WaitMode, Alertable, Interval, Interval == 0 ? 0 : Interval->QuadPart);
 
     NTSTATUS ret = NtDll::NtDelayExecution(Alertable, (NtDll::LARGE_INTEGER*)Interval);
 
@@ -1895,14 +2012,16 @@ XBSYSAPI EXPORTNUM(113) VOID NTAPI xboxkrnl::KeInitializeTimerEx
            ");\n",
            GetCurrentThreadId(), Timer, Type);
 
-    Timer->Header.Type               = Type + 8;
+    Timer->Header.Type               = Type + 8;  // 8 = TimerNotificationObject 
     Timer->Header.Inserted           = 0;
-    Timer->Header.Size               = sizeof(*Timer) / sizeof(ULONG);
+    Timer->Header.Size               = sizeof(KTIMER) / sizeof(ULONG);
     Timer->Header.SignalState        = 0;
+
     Timer->TimerListEntry.Blink      = NULL;
     Timer->TimerListEntry.Flink      = NULL;
     Timer->Header.WaitListHead.Flink = &Timer->Header.WaitListHead;
     Timer->Header.WaitListHead.Blink = &Timer->Header.WaitListHead;
+
     Timer->DueTime.QuadPart          = 0;
     Timer->Period                    = 0;
 
@@ -1987,7 +2106,7 @@ XBSYSAPI EXPORTNUM(129) xboxkrnl::UCHAR NTAPI xboxkrnl::KeRaiseIrqlToDpcLevel()
     DbgPrintf("EmuKrnl (0x%X): KeRaiseIrqlToDpcLevel()\n", GetCurrentThreadId());
 
 	// I really tried to avoid adding this...
-	__asm int 3;
+//	__asm int 3;
 //	CxbxKrnlCleanup("KeRaiseIrqlToDpcLevel not implemented! (Tell blueshogun -_-)");
 
 	EmuSwapFS();
@@ -2010,19 +2129,17 @@ XBSYSAPI EXPORTNUM(149) xboxkrnl::BOOLEAN NTAPI xboxkrnl::KeSetTimer
     DbgPrintf("EmuKrnl (0x%X): KeSetTimer\n"
            "(\n"
            "   Timer               : 0x%.08X\n"
-           "   DueTime             : 0x%I64X\n"
+           "   DueTime             : 0x%.16X\n"
            "   Dpc                 : 0x%.08X\n"
            ");\n",
-           GetCurrentThreadId(), Timer, DueTime, Dpc);
+           GetCurrentThreadId(), Timer, DueTime.QuadPart, Dpc);
 
-    // Call KeSetTimerEx
-//    KeSetTimerEx(Timer, DueTime, 0, Dpc);
-	__asm int 3;
-	CxbxKrnlCleanup("KeSetTimer is not implemented!");
+    // Call KeSetTimerEx with a period of zero
+    BOOLEAN bRet = KeSetTimerEx(Timer, DueTime, 0, Dpc);
 
     EmuSwapFS();   // Xbox FS
 
-    return TRUE;
+    return bRet;
 }
 
 // ******************************************************************
@@ -2041,17 +2158,57 @@ XBSYSAPI EXPORTNUM(150) xboxkrnl::BOOLEAN NTAPI xboxkrnl::KeSetTimerEx
     DbgPrintf("EmuKrnl (0x%X): KeSetTimerEx\n"
            "(\n"
            "   Timer               : 0x%.08X\n"
-           "   DueTime             : 0x%I64X\n"
+           "   DueTime             : 0x%.16X\n"
            "   Period              : 0x%.08X\n"
            "   Dpc                 : 0x%.08X\n"
            ");\n",
-           GetCurrentThreadId(), Timer, DueTime, Period, Dpc);
+           GetCurrentThreadId(), Timer, DueTime.QuadPart, Period, Dpc);
 
-    CxbxKrnlCleanup("KeSetTimerEx is not implemented");
+    BOOLEAN Inserted;
+    LARGE_INTEGER Interval;
+    LARGE_INTEGER SystemTime;
+
+    #define RemoveEntryList(e) do { PLIST_ENTRY f = (e)->Flink, b = (e)->Blink; f->Blink = b; b->Flink = f; (e)->Flink = (e)->Blink = NULL; } while (0)
+
+    if (Timer->Header.Type != 8 && Timer->Header.Type != 9) {
+        CxbxKrnlCleanup("Assertion: '(Timer)->Header.Type == TimerNotificationObject) || ((Timer)->Header.Type == TimerSynchronizationObject)' in KeSetTimerEx()");
+    }
+
+    Inserted = Timer->Header.Inserted;
+    if (Inserted != FALSE) {
+        // Do some unlinking if already inserted in the linked list
+        Timer->Header.Inserted = FALSE;
+        RemoveEntryList(&Timer->TimerListEntry);
+    }
+
+    Timer->Header.SignalState = FALSE;
+    Timer->Dpc = Dpc;
+    Timer->Period = Period;
+
+    if (/*!KiInsertTreeTimer(Timer,DueTime)*/ TRUE) {
+        if (Timer->Header.WaitListHead.Flink != &Timer->Header.WaitListHead) {
+            // KiWaitTest(Timer, 0);
+        }
+
+        if (Dpc != NULL) {
+            // Call the Dpc routine if one is specified
+            KeQuerySystemTime(&SystemTime);
+            // Need to implement KeInsertQueueDpc xboxkrnl.exe export (ordinal 119)
+            // KeInsertQueueDpc(Timer->Dpc, SystemTime.LowPart, SystemTime.HighPart);
+        }
+
+        if (Period != 0) {
+            // Prepare the repetition if Timer is periodic
+            Interval.QuadPart = (-10 * 1000) * Timer->Period;
+            while (/*!KiInsertTreeTimer(Timer,Interval)*/TRUE) {
+                ;
+            }
+        }
+    }
 
     EmuSwapFS();   // Xbox FS
 
-    return TRUE;
+    return Inserted;
 }
 
 // ******************************************************************
@@ -2252,8 +2409,8 @@ XBSYSAPI EXPORTNUM(167) xboxkrnl::PVOID NTAPI xboxkrnl::MmAllocateSystemMemory
 // ******************************************************************
 XBSYSAPI EXPORTNUM(169) xboxkrnl::PVOID NTAPI xboxkrnl::MmCreateKernelStack
 (
-    ULONG NumberOfBytes,
-    ULONG Unknown
+    IN ULONG	NumberOfBytes,
+    IN BOOLEAN  DebuggerThread
 )
 {
     EmuSwapFS();   // Win2k/XP FS
@@ -2261,13 +2418,29 @@ XBSYSAPI EXPORTNUM(169) xboxkrnl::PVOID NTAPI xboxkrnl::MmCreateKernelStack
     DbgPrintf("EmuKrnl (0x%X): MmCreateKernelStack\n"
            "(\n"
            "   NumberOfBytes            : 0x%.08X\n"
-           "   Unknown                  : 0x%.08X\n"
+           "   DebuggerThread           : 0x%.08X\n"
            ");\n",
-           GetCurrentThreadId(), NumberOfBytes, Unknown);
+           GetCurrentThreadId(), NumberOfBytes, DebuggerThread);
 	
-	/*__asm int 3;
-	CxbxKrnlCleanup( "MmCreateKernelStack unimplemented (check call stack)" );*/
 	NtDll::PVOID pRet = NULL;
+
+    if (!NumberOfBytes) {
+        // NumberOfBytes cannot be zero when passed to NtAllocateVirtualMemory() below
+        CxbxKrnlCleanup("Assertion: 'NumberOfBytes != 0' in MmCreateKernelStack()");
+    }
+
+    if (NumberOfBytes & 0xFF) {
+        // Validate NumberOfBytes for alignment with the page size
+        CxbxKrnlCleanup("Assertion: '(NumberOfBytes & (PAGE_SIZE -1)) == 0' in MmCreateKernelStack()");
+    }
+
+    /**
+     * Function at present does not:
+     * - Create an additional guard PAGE_SIZE after allocation,
+     * - Fill allocation with any values
+     * - Treat DebuggerThread any differently
+     */
+
 	if(FAILED(NtDll::NtAllocateVirtualMemory(GetCurrentProcess(), &pRet, 0, &NumberOfBytes, MEM_COMMIT, PAGE_READWRITE)))
 	    EmuWarning("MmCreateKernelStack failed!\n");
 	else
@@ -2370,6 +2543,34 @@ XBSYSAPI EXPORTNUM(172) xboxkrnl::NTSTATUS NTAPI xboxkrnl::MmFreeSystemMemory
 }
 
 // ******************************************************************
+// * 0x00B1 - MmMapIoSpace
+// ******************************************************************
+XBSYSAPI EXPORTNUM(177) xboxkrnl::PVOID NTAPI xboxkrnl::MmMapIoSpace
+(
+    IN PHYSICAL_ADDRESS PhysicalAddress,
+    IN ULONG            NumberOfBytes,
+    IN ULONG            ProtectionType
+)
+{
+    EmuSwapFS();   // Win2k/XP FS
+
+    DbgPrintf("EmuKrnl (0x%X): MmMapIoSpace\n"
+           "(\n"
+           "   PhysicalAddress          : 0x%.08X\n"
+           "   NumberOfBytes            : 0x%.08X\n"
+           "   ProtectionType           : 0x%.08X\n"
+           ");\n",
+           GetCurrentThreadId(), PhysicalAddress, NumberOfBytes, ProtectionType);
+
+    // TODO: should this be aligned?
+    PVOID pRet = CxbxMalloc(NumberOfBytes);
+
+    EmuSwapFS();   // Xbox FS
+
+    return pRet;
+}
+
+// ******************************************************************
 // * 0x00B2 - MmPersistContiguousMemory
 // ******************************************************************
 XBSYSAPI EXPORTNUM(178) VOID NTAPI xboxkrnl::MmPersistContiguousMemory
@@ -2430,28 +2631,56 @@ XBSYSAPI EXPORTNUM(181) xboxkrnl::NTSTATUS NTAPI xboxkrnl::MmQueryStatistics
 
     DbgPrintf("EmuKrnl (0x%X): MmQueryStatistics\n"
            "(\n"
-           "   MemoryStatistics         : 0x%.08X\n"
+           "   MemoryStatistics         : 0x%.08X (MemoryStatistics->Length = 0x%.08X)\n"
            ");\n",
-           GetCurrentThreadId(), MemoryStatistics);
+           GetCurrentThreadId(), MemoryStatistics, MemoryStatistics->Length);
 
     MEMORYSTATUS MemoryStatus;
+    SYSTEM_INFO SysInfo;
+    NTSTATUS ret;
 
-    GlobalMemoryStatus(&MemoryStatus);
+    if (MemoryStatistics->Length == 0x24)
+    {
+        GlobalMemoryStatus(&MemoryStatus);
+        GetSystemInfo(&SysInfo);
 
-    ZeroMemory(MemoryStatistics, sizeof(MM_STATISTICS));
+        /** 
+        * When each of the PMM_STATISTICS MemoryStatistics elements
+        * are setup correctly below, these two lines become redundant 
+        */
+        ZeroMemory(MemoryStatistics, sizeof(MM_STATISTICS));
+        MemoryStatistics->Length = sizeof(MM_STATISTICS);
 
-    MemoryStatistics->Length = sizeof(MM_STATISTICS);
-    MemoryStatistics->TotalPhysicalPages = MemoryStatus.dwTotalVirtual / 4096;
-    MemoryStatistics->AvailablePages = MemoryStatus.dwAvailVirtual / 4096;
+        MemoryStatistics->TotalPhysicalPages = MemoryStatus.dwTotalPhys / SysInfo.dwPageSize;
+        MemoryStatistics->AvailablePages = MemoryStatus.dwAvailPhys / SysInfo.dwPageSize;
+        MemoryStatistics->VirtualMemoryBytesCommitted = MemoryStatus.dwTotalVirtual - MemoryStatus.dwAvailVirtual;
+        MemoryStatistics->VirtualMemoryBytesReserved = MemoryStatus.dwAvailVirtual;
+        // MemoryStatistics->CachePagesCommitted = [ ];
+        // MemoryStatistics->PoolPagesCommitted = [ ];
+        // MemoryStatistics->StackPagesCommitted = [ ];
+        // MemoryStatistics->ImagePagesCommitted = [ ];
 
-    // HACK (does this matter?)
-    MemoryStatistics->VirtualMemoryBytesReserved = MemoryStatus.dwTotalPhys - MemoryStatus.dwAvailPhys;
+        DbgPrintf("   MemoryStatistics->Length                      = 0x%.08X\n", MemoryStatistics->Length);
+        DbgPrintf("   MemoryStatistics->TotalPhysicalPages          = 0x%.08X\n", MemoryStatistics->TotalPhysicalPages);
+        DbgPrintf("   MemoryStatistics->AvailablePages              = 0x%.08X\n", MemoryStatistics->AvailablePages);
+        DbgPrintf("   MemoryStatistics->VirtualMemoryBytesCommitted = 0x%.08X\n", MemoryStatistics->VirtualMemoryBytesCommitted);
+        DbgPrintf("   MemoryStatistics->VirtualMemoryBytesReserved  = 0x%.08X\n", MemoryStatistics->VirtualMemoryBytesReserved);
+        DbgPrintf("   MemoryStatistics->CachePagesCommitted         = 0x%.08X\n", MemoryStatistics->CachePagesCommitted);
+        DbgPrintf("   MemoryStatistics->PoolPagesCommitted          = 0x%.08X\n", MemoryStatistics->PoolPagesCommitted);
+        DbgPrintf("   MemoryStatistics->StackPagesCommitted         = 0x%.08X\n", MemoryStatistics->StackPagesCommitted);
+        DbgPrintf("   MemoryStatistics->ImagePagesCommitted         = 0x%.08X\n", MemoryStatistics->ImagePagesCommitted);
 
-    // the rest arent really used from what i've seen
+        ret = STATUS_SUCCESS;
+    } 
+    else 
+    {
+        EmuWarning("EmuKrnl (0x%X): MmQueryStatistics with unusual size -> 0x%.08X\n", GetCurrentThreadId(), MemoryStatistics->Length);
+        ret = STATUS_INVALID_PARAMETER;
+    }
 
     EmuSwapFS();   // Xbox FS
 
-    return STATUS_SUCCESS;
+    return ret;
 }
 
 // ******************************************************************
@@ -2492,6 +2721,31 @@ XBSYSAPI EXPORTNUM(182) VOID NTAPI xboxkrnl::MmSetAddressProtect
     EmuSwapFS();   // Xbox FS
 
     return;
+}
+
+// ******************************************************************
+// * 0x00B7 - MmUnmapIoSpace
+// ******************************************************************
+XBSYSAPI EXPORTNUM(183) xboxkrnl::NTSTATUS NTAPI xboxkrnl::MmUnmapIoSpace
+(
+    IN PVOID BaseAddress,
+    IN ULONG NumberOfBytes
+)
+{
+    EmuSwapFS();   // Win2k/XP FS
+
+    DbgPrintf("EmuKrnl (0x%X): MmUnmapIoSpace\n"
+           "(\n"
+           "   BaseAddress              : 0x%.08X\n"
+           "   NumberOfBytes            : 0x%.08X\n"
+           ");\n",
+           GetCurrentThreadId(), BaseAddress, NumberOfBytes);
+
+    CxbxFree(BaseAddress);
+
+    EmuSwapFS();   // Xbox FS
+
+    return STATUS_SUCCESS;
 }
 
 // ******************************************************************
@@ -2810,7 +3064,7 @@ XBSYSAPI EXPORTNUM(190) xboxkrnl::NTSTATUS NTAPI xboxkrnl::NtCreateFile
     NTSTATUS ret = NtDll::NtCreateFile
     (
         FileHandle, DesiredAccess, &NtObjAttr, (NtDll::IO_STATUS_BLOCK*)IoStatusBlock,
-        (NtDll::LARGE_INTEGER*)AllocationSize, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, NULL, NULL
+        (NtDll::LARGE_INTEGER*)AllocationSize, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, NULL, 0
     );
 
     // If we're trying to open a regular file as a directory, fallback to
@@ -2851,7 +3105,7 @@ XBSYSAPI EXPORTNUM(190) xboxkrnl::NTSTATUS NTAPI xboxkrnl::NtCreateFile
         ret = NtDll::NtCreateFile
         (
             FileHandle, DesiredAccess, &NtObjAttr, (NtDll::IO_STATUS_BLOCK*)IoStatusBlock,
-            (NtDll::LARGE_INTEGER*)AllocationSize, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, NULL, NULL
+            (NtDll::LARGE_INTEGER*)AllocationSize, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, NULL, 0
         );
     }
 
@@ -3386,8 +3640,29 @@ XBSYSAPI EXPORTNUM(217) xboxkrnl::NTSTATUS NTAPI xboxkrnl::NtQueryVirtualMemory
         0
     );
 
-    if(FAILED(ret))
-        EmuWarning("NtQueryVirtualMemory failed!");
+    if(FAILED(ret)) {
+        EmuWarning("NtQueryVirtualMemory failed (%s)!", NtStatusToString(ret));
+
+        // Bugfix for "Forza Motorsport", which iterates over 2 Gb of memory in 64kb chunks,
+        // but fails on this last query. It's not done though, as after this Forza tries to
+        // NtAllocateVirtualMemory at address 0x00000000 (3 times, actually) which fails too...
+        //
+        // Ported back from dxbx, translator PatrickvL
+        
+        if (BaseAddress == (PVOID)0x7FFF0000) {
+            Buffer->BaseAddress = BaseAddress;
+            Buffer->AllocationBase = BaseAddress;
+            Buffer->AllocationProtect = PAGE_READONLY;
+            Buffer->RegionSize = 64 * 1024;             // size, in bytes, of the region beginning at the base address in which all pages have identical attributes
+            Buffer->State = 4096;                       // MEM_DECOMMIT | PAGE_EXECUTE_WRITECOPY etc
+            Buffer->Protect = PAGE_READONLY;            // One of the flags listed for the AllocationProtect member is specified
+            Buffer->Type = 262144;                      // Specifies the type of pages in the region. (MEM_IMAGE, MEM_MAPPED or MEM_PRIVATE)
+
+            ret = STATUS_SUCCESS;
+
+            DbgPrintf("EmuKrnl (0x%X): NtQueryVirtualMemory: Applied fix for Forza Motorsport!\n", GetCurrentThreadId());
+        }
+    }
 
     EmuSwapFS();   // Xbox FS
 
@@ -3420,7 +3695,7 @@ XBSYSAPI EXPORTNUM(218) xboxkrnl::NTSTATUS NTAPI xboxkrnl::NtQueryVolumeInformat
            Length, FileInformationClass);
 
     // Safety/Sanity Check
-    if((FileInformationClass != FileFsSizeInformation) && (FileInformationClass != FileDirectoryInformation))
+    if(FileInformationClass != FileFsSizeInformation)
         CxbxKrnlCleanup("NtQueryVolumeInformationFile: Unsupported FileInformationClass");
 
     NTSTATUS ret = NtDll::NtQueryVolumeInformationFile
@@ -3447,7 +3722,6 @@ XBSYSAPI EXPORTNUM(218) xboxkrnl::NTSTATUS NTAPI xboxkrnl::NtQueryVolumeInformat
     return ret;
 }
 
-#if 0
 // ******************************************************************
 // * 0x00DA - NtReadFile
 // ******************************************************************
@@ -3492,124 +3766,6 @@ XBSYSAPI EXPORTNUM(219) xboxkrnl::NTSTATUS NTAPI xboxkrnl::NtReadFile
 
     return ret;
 }
-#else
-extern XTL::X_D3DPixelContainer* last_pPixelContainer;
-extern XTL::X_D3DVertexBuffer *last_CreateVertexBuffer_pD3DVertexBuffer;
-extern UINT last_CreateVertexBuffer_Length;
-
-// ******************************************************************
-// * 0x00DA - NtReadFile
-// ******************************************************************
-XBSYSAPI EXPORTNUM(219) xboxkrnl::NTSTATUS NTAPI xboxkrnl::NtReadFile
-(
-    IN  HANDLE          FileHandle,            // TODO: correct paramters
-    IN  HANDLE          Event OPTIONAL,
-    IN  PVOID           ApcRoutine OPTIONAL,
-    IN  PVOID           ApcContext,
-    OUT PVOID           IoStatusBlock,
-    OUT PVOID           Buffer,
-    IN  ULONG           Length,
-    IN  PLARGE_INTEGER  ByteOffset OPTIONAL
-)
-{
-    EmuSwapFS();   // Win2k/XP FS
-
-	if((UINT)Buffer >= 0x80000000) {
-		DbgPrintf("LAST EmuTexture8: = 0x%.08X\n", last_pPixelContainer->EmuTexture8 );
-		
-		if(Length == last_CreateVertexBuffer_Length) {
-			DbgPrintf("NtReadFile last_CreateVertexBuffer_pD3DVertexBuffer: = 0x%.08X\n", last_CreateVertexBuffer_pD3DVertexBuffer);
-			Buffer = last_CreateVertexBuffer_pD3DVertexBuffer;
-
-            BYTE *pData = 0;
-
-            HRESULT hRet = last_CreateVertexBuffer_pD3DVertexBuffer->EmuVertexBuffer8->Lock(0, 0, &pData, 0);
-
-            if(FAILED(hRet))
-                CxbxKrnlCleanup("VertexBuffer Lock Failed!!\n\nError: %s\nDesc: %s", "S", "S");
-
-			DbgPrintf("EmuKrnl (0x%X): NtReadFile\n"
-				   "(\n"
-				   "   FileHandle          : 0x%.08X\n"
-				   "   Event               : 0x%.08X\n"
-				   "   ApcRoutine          : 0x%.08X\n"
-				   "   ApcContext          : 0x%.08X\n"
-				   "   IoStatusBlock       : 0x%.08X\n"
-				   "   Buffer              : 0x%.08X\n"
-				   "   Length              : 0x%.08X\n"
-				   "   ByteOffset          : 0x%.08X (0x%.08X)\n"
-				   ");\n",
-				   GetCurrentThreadId(), FileHandle, Event, ApcRoutine,
-				   ApcContext, IoStatusBlock, Buffer, Length, ByteOffset, ByteOffset == 0 ? 0 : ByteOffset->QuadPart);
-
-			NTSTATUS ret = NtDll::NtReadFile(FileHandle, Event, ApcRoutine, ApcContext, IoStatusBlock, pData, Length, (NtDll::LARGE_INTEGER*)ByteOffset, 0);
-
-			if(FAILED(ret))
-				/*CxbxKrnlCleanup*/EmuWarning("NtReadFile Failed! (0x%.08X)\n", ret);
-
-			last_CreateVertexBuffer_pD3DVertexBuffer->EmuVertexBuffer8->Unlock();
-
-			EmuSwapFS();   // Xbox FS
-
-			return ret;
-		} else {
-			// Assume it's a texture
-			// Todo: Check size against the last createtexture
-
-			//Buffer = (PVOID)((UINT)Buffer - (UINT)0x80000000);
-
-			XTL::D3DLOCKED_RECT LockedRect;
-
-            last_pPixelContainer->EmuTexture8->LockRect(0, &LockedRect, NULL, NULL);
-
-            last_pPixelContainer->Data = (DWORD)LockedRect.pBits;
-            //pPixelContainer->Format = Format << X_D3DFORMAT_FORMAT_SHIFT;
-
-           // g_DataToTexture.insert((*ppTexture)->Data, *ppTexture);
-
-			NTSTATUS ret = NtDll::NtReadFile(FileHandle, Event, ApcRoutine, ApcContext, IoStatusBlock, (PVOID)last_pPixelContainer->Data, Length, (NtDll::LARGE_INTEGER*)ByteOffset, 0);
-
-			if(FAILED(ret))
-				/*CxbxKrnlCleanup*/EmuWarning("NtReadFile Failed! (0x%.08X)\n", ret);
-
-            last_pPixelContainer->EmuTexture8->UnlockRect(0);
-
-			EmuSwapFS();   // Xbox FS
-
-			return ret;
-
-			DbgPrintf("NtReadFile last fix unknown\n");
-		}
-	}
-
-    DbgPrintf("EmuKrnl (0x%X): NtReadFile\n"
-           "(\n"
-           "   FileHandle          : 0x%.08X\n"
-           "   Event               : 0x%.08X\n"
-           "   ApcRoutine          : 0x%.08X\n"
-           "   ApcContext          : 0x%.08X\n"
-           "   IoStatusBlock       : 0x%.08X\n"
-           "   Buffer              : 0x%.08X\n"
-           "   Length              : 0x%.08X\n"
-           "   ByteOffset          : 0x%.08X (0x%.08X)\n"
-           ");\n",
-           GetCurrentThreadId(), FileHandle, Event, ApcRoutine,
-           ApcContext, IoStatusBlock, Buffer, Length, ByteOffset, ByteOffset == 0 ? 0 : ByteOffset->QuadPart);
-
-// Halo...
-//    if(ByteOffset != 0 && ByteOffset->QuadPart == 0x00120800)
-//        _asm int 3
-
-    NTSTATUS ret = NtDll::NtReadFile(FileHandle, Event, ApcRoutine, ApcContext, IoStatusBlock, Buffer, Length, (NtDll::LARGE_INTEGER*)ByteOffset, 0);
-
-    if(FAILED(ret))
-		/*CxbxKrnlCleanup*/EmuWarning("NtReadFile Failed! (0x%.08X)\n", ret);
-
-    EmuSwapFS();   // Xbox FS
-
-    return ret;
-}
-#endif
 
 // ******************************************************************
 // * 0x00DD - NtReleaseMutant
@@ -4123,7 +4279,7 @@ XBSYSAPI EXPORTNUM(258) VOID NTAPI xboxkrnl::PsTerminateSystemThread(IN NTSTATUS
 			if(pfnNotificationRoutine == NULL)
 				continue;
 
-			DbgPrintf("EmKrnl (0x%X): Calling pfnNotificationRoutine[%d] (0x%.08X)\n", g_iThreadNotificationCount, GetCurrentThreadId(), pfnNotificationRoutine);
+			DbgPrintf("EmuKrnl (0x%X): Calling pfnNotificationRoutine[%d] (0x%.08X)\n", g_iThreadNotificationCount, GetCurrentThreadId(), pfnNotificationRoutine);
 
 			EmuSwapFS();   // Xbox FS
 
@@ -4184,15 +4340,14 @@ XBSYSAPI EXPORTNUM(264) VOID NTAPI xboxkrnl::RtlAssert
 
     DbgPrintf("EmuKrnl (0x%X): RtlAssert\n"
            "(\n"
-           "   FailedAssertion           : 0x%.08X\n"
-           "   FileName                  : 0x%.08X\n"
-           "   LineNumber                : 0x%.08X\n"
+           "   FailedAssertion           : 0x%.08X (\"%s\")\n"
+           "   FileName                  : 0x%.08X (\"%s\")\n"
+           "   LineNumber                : 0x%.08X (\"%lu\")\n"
            "   Message                   : 0x%.08X (\"%s\")\n"
            ");\n",
-           GetCurrentThreadId(), FailedAssertion, FileName, Message, Message);
+           GetCurrentThreadId(), FailedAssertion, FailedAssertion, FileName, FileName, LineNumber, LineNumber, Message, Message);
 
-    //TODO: Actually implement this.
-    //NTSTATUS ret = NtDll::RtlAssert((NtDll::UNICODE_STRING*)DestinationString, (NtDll::STRING*)SourceString, AllocateDestinationString);
+    CxbxKrnlCleanup("RtlAssert() raised by emulated program - consult Debug log");
 
     EmuSwapFS();   // Xbox FS
 
@@ -4261,7 +4416,7 @@ XBSYSAPI EXPORTNUM(279) xboxkrnl::BOOLEAN NTAPI xboxkrnl::RtlEqualString
 
 	DbgPrintf("EmuKrnl (0x%X): RtlEqualString\n"
 			"(\n"
-			"	String2            : 0x%.08X (\"%s\")\n"
+			"	String1            : 0x%.08X (\"%s\")\n"
 			"	String2            : 0x%.08X (\"%s\")\n"
 			"	CaseSensitive      : 0x%.08X\n"
 			");\n",
@@ -4272,6 +4427,29 @@ XBSYSAPI EXPORTNUM(279) xboxkrnl::BOOLEAN NTAPI xboxkrnl::RtlEqualString
 	EmuSwapFS();	// Xbox FS
 
 	return bRet;
+}
+
+// ******************************************************************
+// * 0x011E - RtlFreeAnsiString
+// ******************************************************************
+XBSYSAPI EXPORTNUM(286) VOID NTAPI xboxkrnl::RtlFreeAnsiString
+(
+  IN OUT PANSI_STRING AnsiString
+)
+{
+    EmuSwapFS();   // Win2k/XP FS
+
+    DbgPrintf("EmuKrnl (0x%X): RtlFreeAnsiString\n"
+           "(\n"
+           "   AnsiString        : 0x%.08X\n"
+           ");\n",
+           GetCurrentThreadId(), AnsiString);
+
+    NtDll::RtlFreeAnsiString((NtDll::PANSI_STRING)AnsiString);
+
+    EmuSwapFS();   // Xbox FS
+
+    return;
 }
 
 // ******************************************************************
@@ -4293,6 +4471,31 @@ XBSYSAPI EXPORTNUM(289) VOID NTAPI xboxkrnl::RtlInitAnsiString
            GetCurrentThreadId(), DestinationString, SourceString, SourceString);
 
     NtDll::RtlInitAnsiString((NtDll::PANSI_STRING)DestinationString, (NtDll::PCSZ)SourceString);
+
+    EmuSwapFS();   // Xbox FS
+
+    return;
+}
+
+// ******************************************************************
+// * 0x0122 - RtlInitUnicodeString
+// ******************************************************************
+XBSYSAPI EXPORTNUM(290) VOID NTAPI xboxkrnl::RtlInitUnicodeString
+(
+  IN OUT PUNICODE_STRING DestinationString,
+  IN     PSTRING         SourceString
+)
+{
+    EmuSwapFS();   // Win2k/XP FS
+
+    DbgPrintf("EmuKrnl (0x%X): RtlInitUnicodeString\n"
+           "(\n"
+           "   DestinationString   : 0x%.08X\n"
+           "   SourceString        : 0x%.08X (\"%ls\")\n"
+           ");\n",
+           GetCurrentThreadId(), DestinationString, SourceString, SourceString);
+
+    NtDll::RtlInitUnicodeString((NtDll::PUNICODE_STRING)DestinationString, (NtDll::PCWSTR)SourceString);
 
     EmuSwapFS();   // Xbox FS
 

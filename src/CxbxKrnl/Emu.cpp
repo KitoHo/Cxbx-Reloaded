@@ -119,8 +119,8 @@ extern "C" CXBXKRNL_API void NTAPI EmuWarning(const char *szWarningMessage, ...)
     if(szWarningMessage == NULL)
         return;
 
-    char szBuffer1[255];
-    char szBuffer2[255];
+    char szBuffer1[1024];
+    char szBuffer2[1024];
 
     va_list argp;
 
@@ -308,6 +308,7 @@ extern int EmuException(LPEXCEPTION_POINTERS e)
 			return EXCEPTION_CONTINUE_EXECUTION;
 		}
 
+		// House of the Dead 3 *NTSC*
 		if(e->ContextRecord->Eip == 0x1197F4)
 		{
 			e->ContextRecord->Eip += 2;
@@ -335,21 +336,6 @@ extern int EmuException(LPEXCEPTION_POINTERS e)
             return EXCEPTION_CONTINUE_EXECUTION;
         }
     }
-
-	/*if(e->ExceptionRecord->ExceptionCode == 0xC0000005)
-	{
-		if(e->ContextRecord->Eip == 0xD99E2)
-		{
-			 Zapper REP MOVSD skip
-            e->ContextRecord->Eip += 2;
-
-            DbgPrintf("EmuMain (0x%X): Zapper Hack 2 was applied!\n", GetCurrentThreadId());
-
-            g_bEmuException = false;
-
-            return EXCEPTION_CONTINUE_EXECUTION;
-        }
-	}*/
 
 	// Fusion Frenzy (Demo) *NTSC*
 	// The full version probably has the same problem.  If so, add the address here :)
@@ -840,7 +826,7 @@ extern int EmuException(LPEXCEPTION_POINTERS e)
                 "  Press Abort to terminate emulation.\n"
                 "  Press Retry to debug.\n"
                 "  Press Ignore to continue emulation.",
-                e->ContextRecord->Eip, e->ContextRecord->EFlags);
+                e->ContextRecord->Eip);
 
             e->ContextRecord->Eip += 1;
 
@@ -872,7 +858,7 @@ extern int EmuException(LPEXCEPTION_POINTERS e)
                 "\n"
                 "  Press \"OK\" to terminate emulation.\n"
                 "  Press \"Cancel\" to debug.",
-                e->ExceptionRecord->ExceptionCode, e->ContextRecord->Eip, e->ContextRecord->EFlags);
+                e->ExceptionRecord->ExceptionCode, e->ContextRecord->Eip);
 
             if(MessageBox(g_hEmuWindow, buffer, "Cxbx", MB_ICONSTOP | MB_OKCANCEL) == IDOK)
             {

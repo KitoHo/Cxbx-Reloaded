@@ -835,7 +835,7 @@ DWORD WINAPI XTL::EmuXInputGetState
 }
 
 // ******************************************************************
-// * func: EmuInputGetState
+// * func: EmuInputSetState
 // ******************************************************************
 DWORD WINAPI XTL::EmuXInputSetState
 (
@@ -1016,9 +1016,6 @@ BOOL WINAPI XTL::EmuSetThreadPriority
 
     if(bRet == FALSE)
         EmuWarning("SetThreadPriority Failed!");
-
-    // HACK!
-    //Sleep(10);
 
     EmuSwapFS();   // XBox FS
 
@@ -1283,7 +1280,7 @@ LPVOID WINAPI XTL::EmuCreateFiber
 	if( !pFiber )
 		EmuWarning( "CreateFiber failed!" );
 	else
-		DbgPrintf("CreateFiber returned 0x%X\n" );
+		DbgPrintf("CreateFiber returned 0x%X\n", pFiber);
 
 	// Add to list of queued fiber routines
 	g_Fibers[g_FiberCount].pfnRoutine = lpStartRoutine;
@@ -1420,7 +1417,7 @@ LPVOID WINAPI XTL::EmuXLoadSectionA
 
 	DbgPrintf("EmuXapi (0x%X): EmuXLoadSectionA\n"
 			"(\n"
-			"   pSectionName       : \"%s\"\n"
+			"   pSectionName       : 0x%.08X (\"%s\")\n"
 			");\n",
 			GetCurrentThreadId(), pSectionName, pSectionName );
 
@@ -1463,7 +1460,7 @@ BOOL WINAPI XTL::EmuXFreeSectionA
 
 	DbgPrintf("EmuXapi (0x%X): EmuXFreeSectionA\n"
 			"(\n"
-			"   pSectionName       : \"%s\"\n"
+			"   pSectionName       : 0x%.08X (\"%s\")\n"
 			");\n",
 			GetCurrentThreadId(), pSectionName, pSectionName );
 
@@ -1487,14 +1484,11 @@ HANDLE WINAPI XTL::EmuXGetSectionHandleA
 
 	DbgPrintf("EmuXapi (0x%X): EmuXGetSectionHandleA\n"
 			"(\n"
-			"   pSectionName       : \"%s\"\n"
+			"   pSectionName       : 0x%.08X (\"%s\")\n"
 			");\n",
 			GetCurrentThreadId(), pSectionName, pSectionName );
 
 	void* pRet = NULL;
-
-	// TODO: Implement (if necessary)?
-//	CxbxKrnlCleanup( "XGetSectionHandleA is not implemented" );
 
 	// TODO: Save the name and address of each section contained in 
 	// this .xbe instead of adding this stuff by hand because the section
@@ -1553,6 +1547,13 @@ HANDLE WINAPI XTL::EmuXGetSectionHandleA
 		pRet = (void*) 0x140620;
 	}
 
+	// Forza Motorsport (ALL, XDK 5849)
+	else if(!strcmp(pSectionName, "DDERR" ))
+	{
+		pRet = (void*) 0x572000;    // Raw Address
+		// pRet = (void*) 0x5EBDA0;    // Virtual Address
+	}
+
 	// Taz Wanted (NTSC)
 	/*else if(!strcmp(pSectionName, "sig" ))
 	{
@@ -1566,7 +1567,7 @@ HANDLE WINAPI XTL::EmuXGetSectionHandleA
 
 	else
 	{
-		__asm int 3;
+		CxbxKrnlCleanup( "XGetSectionHandleA is not implemented for section '%s'", pSectionName );
 	}
 
 	EmuSwapFS();	// Xbox FS
@@ -1615,7 +1616,7 @@ BOOL WINAPI XTL::EmuXFreeSectionByHandle
 			GetCurrentThreadId(), hSection );
 
 	// TODO: Implement (if necessary)?
-//	CxbxKrnlCleanup( "XLoadSectionByHandle is not implemented" );
+//	CxbxKrnlCleanup( "XFreeSectionByHandle is not implemented" );
 
 	EmuSwapFS();	// Xbox FS
 
@@ -1855,14 +1856,18 @@ DWORD WINAPI XTL::EmuXGetLaunchInfo
 			");\n",
 			GetCurrentThreadId(), pdwLaunchDataType, pLaunchData);
 	
-	DWORD dwRet = E_FAIL;
+	// The title was launched by turning on the Xbox console with the title disc already in the DVD drive
+	DWORD dwRet = ERROR_NOT_FOUND;
 
 	// Has XLaunchNewImage been called since we've started this round?
 	if(g_bXLaunchNewImageCalled)
 	{
-		// I don't think we'll be emulating any other xbox apps
-    	// other than games anytime soon...
-    	*pdwLaunchDataType = LDT_TITLE; 
+		// The title was launched by a call to XLaunchNewImage
+		// A title can pass data only to itself, not another title
+		//
+		// Other options include LDT_FROM_DASHBOARD, LDT_FROM_DEBUGGER_CMDLINE and LDT_FROM_UPDATE
+		//
+		*pdwLaunchDataType = LDT_TITLE; 
 
 		// Copy saved launch data
 		CopyMemory(pLaunchData, &g_SavedLaunchData, sizeof(LAUNCH_DATA));
@@ -1879,7 +1884,11 @@ DWORD WINAPI XTL::EmuXGetLaunchInfo
 	// If it does exist, load it.
 	if(fp)
 	{
-		// Data from Xbox game
+		// The title was launched by a call to XLaunchNewImage
+		// A title can pass data only to itself, not another title
+		//
+		// Other options include LDT_FROM_DASHBOARD, LDT_FROM_DEBUGGER_CMDLINE and LDT_FROM_UPDATE
+		//
 		*pdwLaunchDataType = LDT_TITLE; 
 
 		// Read in the contents.
@@ -2182,7 +2191,7 @@ DWORD WINAPI XTL::EmuGetFileAttributesA
 
 	DWORD dwRet = GetFileAttributesA(szBuffer);
 	if(FAILED(dwRet))
-		EmuWarning("GetFileAttributes failed!");
+		EmuWarning("GetFileAttributes(\"%s\") failed!", szBuffer);
 
 	EmuSwapFS();
 

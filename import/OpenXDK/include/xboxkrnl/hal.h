@@ -40,14 +40,12 @@ XBSYSAPI EXPORTNUM(44) ULONG  NTAPI HalGetInterruptVector
 // ******************************************************************
 // * HalReadSMBusValue
 // ******************************************************************
-XBSYSAPI EXPORTNUM(45) VOID NTAPI HalReadSMBusValue
+XBSYSAPI EXPORTNUM(45) NTSTATUS NTAPI HalReadSMBusValue
 (
-    ULONG   BusNumber,
-    ULONG   SlotNumber,
-    ULONG   RegisterNumber,
-    PVOID   Buffer,
-    ULONG   Length,
-    BOOLEAN WritePCISpace
+    IN  UCHAR               Address,
+    IN  UCHAR               Command,
+    IN  BOOLEAN             ReadWord,
+    OUT PULONG              DataValue
 );
 
 // ******************************************************************
@@ -89,12 +87,12 @@ XBSYSAPI EXPORTNUM(49) VOID DECLSPEC_NORETURN HalReturnToFirmware
 // ******************************************************************
 // * HalWriteSMBusValue
 // ******************************************************************
-XBSYSAPI EXPORTNUM(50) ULONG NTAPI HalWriteSMBusValue
+XBSYSAPI EXPORTNUM(50) NTSTATUS NTAPI HalWriteSMBusValue
 (
     UCHAR   Address,
     UCHAR   Command,
-    BOOLEAN WordFlag,
-    ULONG   Value
+    BOOLEAN WriteWord,
+    ULONG   DataValue
 );
 
 // ******************************************************************

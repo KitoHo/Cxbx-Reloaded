@@ -59,13 +59,13 @@ extern "C" CXBXKRNL_API uint32 CxbxKrnl_KernelThunkTable[367] =
 {
     (uint32)PANIC(0x0000),                          // 0x0000 (0)
     (uint32)&xboxkrnl::AvGetSavedDataAddress,       // 0x0001 (1)
-    (uint32)PANIC(0x0002),                          // 0x0002 (2)
-    (uint32)PANIC(0x0003),                          // 0x0003 (3)
-    (uint32)PANIC(0x0004),                          // 0x0004 (4)
-    (uint32)PANIC(0x0005),                          // 0x0005 (5)
-    (uint32)PANIC(0x0006),                          // 0x0006 (6)
-    (uint32)PANIC(0x0007),                          // 0x0007 (7)
-	(uint32)&xboxkrnl::DbgPrint,                    // 0x0008 (8)
+    (uint32)&xboxkrnl::AvSendTVEncoderOption,       // 0x0002 (2)
+    (uint32)PANIC(0x0003),                          // 0x0003 (3)   AvSetDisplayMode
+    (uint32)PANIC(0x0004),                          // 0x0004 (4)   AvSetSavedDataAddress
+    (uint32)PANIC(0x0005),                          // 0x0005 (5)   DbgBreakPoint
+    (uint32)PANIC(0x0006),                          // 0x0006 (6)   DbgBreakPointWithStatus
+    (uint32)PANIC(0x0007),                          // 0x0007 (7)   DbgLoadImageSymbols
+    (uint32)&xboxkrnl::DbgPrint,                    // 0x0008 (8)
     (uint32)&xboxkrnl::HalReadSMCTrayState,         // 0x0009 (9)
     (uint32)PANIC(0x000A),                          // 0x000A (10)
     (uint32)PANIC(0x000B),                          // 0x000B (11)
@@ -73,14 +73,14 @@ extern "C" CXBXKRNL_API uint32 CxbxKrnl_KernelThunkTable[367] =
     (uint32)PANIC(0x000D),                          // 0x000D (13)
     (uint32)&xboxkrnl::ExAllocatePool,              // 0x000E (14)
     (uint32)&xboxkrnl::ExAllocatePoolWithTag,       // 0x000F (15)
-    (uint32)PANIC(0x0010),                          // 0x0010 (16)
-    (uint32)PANIC(0x0011),                          // 0x0011 (17)
-    (uint32)PANIC(0x0012),                          // 0x0012 (18)
-    (uint32)PANIC(0x0013),                          // 0x0013 (19)
-    (uint32)PANIC(0x0014),                          // 0x0014 (20)
-    (uint32)PANIC(0x0015),                          // 0x0015 (21)
-    (uint32)PANIC(0x0016),                          // 0x0016 (22)
-    (uint32)PANIC(0x0017),                          // 0x0017 (23)
+    (uint32)PANIC(0x0010),                          // 0x0010 (16)  ExEventObjectType
+    (uint32)&xboxkrnl::ExFreePool,                  // 0x0011 (17)
+    (uint32)PANIC(0x0012),                          // 0x0012 (18)  ExInitializeReadWriteLock
+    (uint32)PANIC(0x0013),                          // 0x0013 (19)  ExInterlockedAddLargeInteger
+    (uint32)PANIC(0x0014),                          // 0x0014 (20)  ExInterlockedAddLargeStatistic
+    (uint32)PANIC(0x0015),                          // 0x0015 (21)  ExInterlockedCompareExchange64
+    (uint32)PANIC(0x0016),                          // 0x0016 (22)  ExMutantObjectType
+    (uint32)PANIC(0x0017),                          // 0x0017 (23)  ExQueryPoolBlockSize
     (uint32)&xboxkrnl::ExQueryNonVolatileSetting,   // 0x0018 (24)
     (uint32)&xboxkrnl::ExReadWriteRefurbInfo,       // 0x0019 (25)
     (uint32)PANIC(0x001A),                          // 0x001A (26)
@@ -102,27 +102,27 @@ extern "C" CXBXKRNL_API uint32 CxbxKrnl_KernelThunkTable[367] =
     (uint32)PANIC(0x002A),                          // 0x002A (42)
     (uint32)PANIC(0x002B),                          // 0x002B (43)
     (uint32)&xboxkrnl::HalGetInterruptVector,       // 0x002C (44)
-    (uint32)PANIC(0x002D),                          // 0x002D (45)
+    (uint32)&xboxkrnl::HalReadSMBusValue,            // 0x002D (45)
     (uint32)PANIC(0x002E),                          // 0x002E (46)
     (uint32)&xboxkrnl::HalRegisterShutdownNotification, // 0x002F (47)
     (uint32)PANIC(0x0030),                          // 0x0030 (48)
     (uint32)&xboxkrnl::HalReturnToFirmware,         // 0x0031 (49)
-    (uint32)PANIC(0x0032),                          // 0x0032 (50)
-    (uint32)PANIC(0x0033),                          // 0x0033 (51)
-    (uint32)PANIC(0x0034),                          // 0x0034 (52)
-    (uint32)PANIC(0x0035),                          // 0x0035 (53)
-    (uint32)PANIC(0x0036),                          // 0x0036 (54)
-    (uint32)PANIC(0x0037),                          // 0x0037 (55)
-    (uint32)PANIC(0x0038),                          // 0x0038 (56)
-    (uint32)PANIC(0x0039),                          // 0x0039 (57)
-    (uint32)PANIC(0x003A),                          // 0x003A (58)
-    (uint32)PANIC(0x003B),                          // 0x003B (59)
-    (uint32)PANIC(0x003C),                          // 0x003C (60)
-    (uint32)PANIC(0x003D),                          // 0x003D (61)
-    (uint32)PANIC(0x003E),                          // 0x003E (62)
-    (uint32)PANIC(0x003F),                          // 0x003F (63)
-    (uint32)PANIC(0x0040),                          // 0x0040 (64)
-    (uint32)PANIC(0x0041),                          // 0x0041 (65)
+    (uint32)&xboxkrnl::HalWriteSMBusValue,          // 0x0032 (50)
+    (uint32)PANIC(0x0033),                          // 0x0033 (51)  InterlockedCompareExchange
+    (uint32)PANIC(0x0034),                          // 0x0034 (52)  InterlockedDecrement
+    (uint32)PANIC(0x0035),                          // 0x0035 (53)  InterlockedIncrement
+    (uint32)PANIC(0x0036),                          // 0x0036 (54)  InterlockedExchange
+    (uint32)PANIC(0x0037),                          // 0x0037 (55)  InterlockedExchangeAdd
+    (uint32)PANIC(0x0038),                          // 0x0038 (56)  InterlockedFlushSList
+    (uint32)PANIC(0x0039),                          // 0x0039 (57)  InterlockedPopEntrySList
+    (uint32)PANIC(0x003A),                          // 0x003A (58)  InterlockedPushEntrySList
+    (uint32)PANIC(0x003B),                          // 0x003B (59)  IoAllocateIrp
+    (uint32)PANIC(0x003C),                          // 0x003C (60)  IoBuildAsynchronousFsdRequest
+    (uint32)PANIC(0x003D),                          // 0x003D (61)  IoBuildDeviceIoControlRequest
+    (uint32)PANIC(0x003E),                          // 0x003E (62)  IoBuildSynchronousFsdRequest
+    (uint32)PANIC(0x003F),                          // 0x003F (63)  IoCheckShareAccess
+    (uint32)PANIC(0x0040),                          // 0x0040 (64)  IoCompletionObjectType
+    (uint32)PANIC(0x0041),                          // 0x0041 (65)  IoCreateDevice
     (uint32)&xboxkrnl::IoCreateFile,                // 0x0042 (66)
     (uint32)&xboxkrnl::IoCreateSymbolicLink,        // 0x0043 (67)
     (uint32)PANIC(0x0044),                          // 0x0044 (68)
@@ -214,10 +214,10 @@ extern "C" CXBXKRNL_API uint32 CxbxKrnl_KernelThunkTable[367] =
     (uint32)PANIC(0x009A),                          // 0x009A (154)
     (uint32)PANIC(0x009B),                          // 0x009B (155)
     (uint32)&xboxkrnl::KeTickCount,                 // 0x009C (156)
-    (uint32)PANIC(0x009D),                          // 0x009D (157)
-    (uint32)PANIC(0x009E),                          // 0x009E (158)
-    (uint32)PANIC(0x009F),                          // 0x009F (159)
-    (uint32)/*&xboxkrnl::KfRaiseIrql*/PANIC(0x00A0),                 // 0x00A0 (160)
+    (uint32)PANIC(0x009D),                          // 0x009D (157) KeTimeIncrement
+    (uint32)PANIC(0x009E),                          // 0x009E (158) KeWaitForMultipleObjects
+    (uint32)PANIC(0x009F),                          // 0x009F (159) KeWaitForSingleObject
+    (uint32)&xboxkrnl::KfRaiseIrql,                 // 0x00A0 (160)
     (uint32)&xboxkrnl::KfLowerIrql,                 // 0x00A1 (161)
     (uint32)PANIC(0x00A2),                          // 0x00A2 (162)
     (uint32)PANIC(0x00A3),                          // 0x00A3 (163)
@@ -225,22 +225,22 @@ extern "C" CXBXKRNL_API uint32 CxbxKrnl_KernelThunkTable[367] =
     (uint32)&xboxkrnl::MmAllocateContiguousMemory,  // 0x00A5 (165)
     (uint32)&xboxkrnl::MmAllocateContiguousMemoryEx,// 0x00A6 (166)
     (uint32)&xboxkrnl::MmAllocateSystemMemory,      // 0x00A7 (167)
-    (uint32)PANIC(0x00A8),                          // 0x00A8 (168)
-    (uint32)&xboxkrnl::MmCreateKernelStack,/*PANIC(0x00A9),*/         // 0x00A9 (169)
+    (uint32)PANIC(0x00A8),                          // 0x00A8 (168) MmClaimGpuInstanceMemory
+    (uint32)&xboxkrnl::MmCreateKernelStack,         // 0x00A9 (169)
     (uint32)&xboxkrnl::MmDeleteKernelStack,         // 0x00AA (170)
     (uint32)&xboxkrnl::MmFreeContiguousMemory,      // 0x00AB (171)
     (uint32)&xboxkrnl::MmFreeSystemMemory,          // 0x00AC (172)
-    (uint32)PANIC(0x00AD),                          // 0x00AD (173)
-    (uint32)PANIC(0x00AE),                          // 0x00AE (174)
-    (uint32)PANIC(0x00AF),                          // 0x00AF (175)
-    (uint32)PANIC(0x00B0),                          // 0x00B0 (176)
-    (uint32)PANIC(0x00B1),                          // 0x00B1 (177)
+    (uint32)PANIC(0x00AD),                          // 0x00AD (173) MmGetPhysicalAddress
+    (uint32)PANIC(0x00AE),                          // 0x00AE (174) MmIsAddressValid
+    (uint32)PANIC(0x00AF),                          // 0x00AF (175) MmLockUnlockBufferPages
+    (uint32)PANIC(0x00B0),                          // 0x00B0 (176) MmLockUnlockPhysicalPage
+    (uint32)&xboxkrnl::MmMapIoSpace,                // 0x00B1 (177)
     (uint32)&xboxkrnl::MmPersistContiguousMemory,   // 0x00B2 (178)
     (uint32)PANIC(0x00B3),                          // 0x00B3 (179)
     (uint32)&xboxkrnl::MmQueryAllocationSize,       // 0x00B4 (180)
     (uint32)&xboxkrnl::MmQueryStatistics,           // 0x00B5 (181)
     (uint32)&xboxkrnl::MmSetAddressProtect,         // 0x00B6 (182)
-    (uint32)PANIC(0x00B7),                          // 0x00B7 (183)
+    (uint32)&xboxkrnl::MmUnmapIoSpace,              // 0x00B7 (183)
     (uint32)&xboxkrnl::NtAllocateVirtualMemory,     // 0x00B8 (184)
     (uint32)PANIC(0x00B9),                          // 0x00B9 (185)
     (uint32)&xboxkrnl::NtClearEvent,                // 0x00BA (186)
@@ -296,25 +296,25 @@ extern "C" CXBXKRNL_API uint32 CxbxKrnl_KernelThunkTable[367] =
     (uint32)&xboxkrnl::NtWriteFile,                 // 0x00EC (236)
     (uint32)PANIC(0x00ED),                          // 0x00ED (237)
     (uint32)&xboxkrnl::NtYieldExecution,            // 0x00EE (238)
-    (uint32)PANIC(0x00EF),                          // 0x00EF (239)
-    (uint32)PANIC(0x00F0),                          // 0x00F0 (240)
-    (uint32)PANIC(0x00F1),                          // 0x00F1 (241)
-    (uint32)PANIC(0x00F2),                          // 0x00F2 (242)
-    (uint32)PANIC(0x00F3),                          // 0x00F3 (243)
-    (uint32)PANIC(0x00F4),                          // 0x00F4 (244)
-    (uint32)PANIC(0x00F5),                          // 0x00F5 (245)
-    (uint32)PANIC(0x00F6),                          // 0x00F6 (246)
-    (uint32)PANIC(0x00F7),                          // 0x00F7 (247)
-    (uint32)PANIC(0x00F8),                          // 0x00F8 (248)
-    (uint32)PANIC(0x00F9),                          // 0x00F9 (249)
-    (uint32)PANIC(0x00FA),                          // 0x00FA (250)
-    (uint32)PANIC(0x00FB),                          // 0x00FB (251)
-    (uint32)PANIC(0x00FC),                          // 0x00FC (252)
-    (uint32)PANIC(0x00FD),                          // 0x00FD (253)
-    (uint32)PANIC(0x00FE),                          // 0x00FE (254)
-    (uint32)&xboxkrnl::PsCreateSystemThreadEx,      // 0x00FF (255)
-    (uint32)PANIC(0x0100),                          // 0x0100 (256)
-    (uint32)PANIC(0x0101),                          // 0x0101 (257)
+    (uint32)PANIC(0x00EF),                          // 0x00EF (239) ObCreateObject
+    (uint32)PANIC(0x00F0),                          // 0x00F0 (240) ObDirectoryObjectType
+    (uint32)PANIC(0x00F1),                          // 0x00F1 (241) ObInsertObject
+    (uint32)PANIC(0x00F2),                          // 0x00F2 (242) ObMakeTemporaryObject 
+    (uint32)PANIC(0x00F3),                          // 0x00F3 (243) ObOpenObjectByName
+    (uint32)PANIC(0x00F4),                          // 0x00F4 (244) ObOpenObjectByPointer
+    (uint32)PANIC(0x00F5),                          // 0x00F5 (245) ObpObjectHandleTable
+    (uint32)PANIC(0x00F6),                          // 0x00F6 (246) ObReferenceObjectByHandle
+    (uint32)PANIC(0x00F7),                          // 0x00F7 (247) ObReferenceObjectByName
+    (uint32)PANIC(0x00F8),                          // 0x00F8 (248) ObReferenceObjectByPointer
+    (uint32)PANIC(0x00F9),                          // 0x00F9 (249) ObSymbolicLinkObjectType
+    (uint32)PANIC(0x00FA),                          // 0x00FA (250) ObfDereferenceObject
+    (uint32)PANIC(0x00FB),                          // 0x00FB (251) ObfReferenceObject
+    (uint32)PANIC(0x00FC),                          // 0x00FC (252) PhyGetLinkState
+    (uint32)PANIC(0x00FD),                          // 0x00FD (253) PhyInitialize
+    (uint32)PANIC(0x00FE),                          // 0x00FE (254) PsCreateSystemThread
+    (uint32)&xboxkrnl::PsCreateSystemThreadEx,      // 0x00FF (255) 
+    (uint32)PANIC(0x0100),                          // 0x0100 (256) PsQueryStatistics
+    (uint32)PANIC(0x0101),                          // 0x0101 (257) PsSetCreateThreadNotifyRoutine
     (uint32)&xboxkrnl::PsTerminateSystemThread,     // 0x0102 (258)
     (uint32)PANIC(0x0103),                          // 0x0103 (259)
     (uint32)&xboxkrnl::RtlAnsiStringToUnicodeString,// 0x0104 (260)
@@ -337,17 +337,17 @@ extern "C" CXBXKRNL_API uint32 CxbxKrnl_KernelThunkTable[367] =
     (uint32)&xboxkrnl::RtlEnterCriticalSection,     // 0x0115 (277)
     (uint32)PANIC(0x0116),                          // 0x0116 (278)
     (uint32)&xboxkrnl::RtlEqualString,              // 0x0117 (279)
-    (uint32)PANIC(0x0118),                          // 0x0118 (280)
-    (uint32)PANIC(0x0119),                          // 0x0119 (281)
-    (uint32)PANIC(0x011A),                          // 0x011A (282)
-    (uint32)PANIC(0x011B),                          // 0x011B (283)
-    (uint32)PANIC(0x011C),                          // 0x011C (284)
-    (uint32)PANIC(0x011D),                          // 0x011D (285)
-    (uint32)PANIC(0x011E),                          // 0x011E (286)
-    (uint32)PANIC(0x011F),                          // 0x011F (287)
-    (uint32)PANIC(0x0120),                          // 0x0120 (288)
+    (uint32)PANIC(0x0118),                          // 0x0118 (280) RtlEqualUnicodeString
+    (uint32)PANIC(0x0119),                          // 0x0119 (281) RtlExtendedIntegerMultiply
+    (uint32)PANIC(0x011A),                          // 0x011A (282) RtlExtendedLargeIntegerDivide
+    (uint32)PANIC(0x011B),                          // 0x011B (283) RtlExtendedMagicDivide
+    (uint32)PANIC(0x011C),                          // 0x011C (284) RtlFillMemory
+    (uint32)PANIC(0x011D),                          // 0x011D (285) RtlFillMemoryUlong
+    (uint32)xboxkrnl::RtlFreeAnsiString,            // 0x011E (286)
+    (uint32)PANIC(0x011F),                          // 0x011F (287) RtlFreeUnicodeString
+    (uint32)PANIC(0x0120),                          // 0x0120 (288) RtlGetCallersAddress
     (uint32)&xboxkrnl::RtlInitAnsiString,           // 0x0121 (289)
-    (uint32)PANIC(0x0122),                          // 0x0122 (290)
+    (uint32)&xboxkrnl::RtlInitUnicodeString,        // 0x0122 (290)
     (uint32)&xboxkrnl::RtlInitializeCriticalSection,// 0x0123 (291)
     (uint32)PANIC(0x0124),                          // 0x0124 (292)
     (uint32)PANIC(0x0125),                          // 0x0125 (293)

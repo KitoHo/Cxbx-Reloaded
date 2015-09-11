@@ -111,7 +111,15 @@ XBSYSAPI VOID *RtlExtendedLargeIntegerDivide;
 XBSYSAPI VOID *RtlExtendedMagicDivide;
 XBSYSAPI VOID *RtlFillMemory;
 XBSYSAPI VOID *RtlFillMemoryUlong;
-XBSYSAPI VOID *RtlFreeAnsiString;
+
+// ******************************************************************
+// * RtlFreeAnsiString
+// ******************************************************************
+XBSYSAPI EXPORTNUM(286) VOID NTAPI RtlFreeAnsiString
+(
+  IN OUT PANSI_STRING AnsiString
+);
+
 XBSYSAPI VOID *RtlFreeUnicodeString;
 XBSYSAPI VOID *RtlGetCallersAddress;
 
@@ -128,7 +136,11 @@ XBSYSAPI EXPORTNUM(289) VOID NTAPI RtlInitAnsiString
   IN     PCSZ         SourceString
 );
 
-XBSYSAPI VOID *RtlInitUnicodeString;
+XBSYSAPI EXPORTNUM(290) VOID NTAPI RtlInitUnicodeString
+(
+  IN OUT PUNICODE_STRING DestinationString,
+  IN     PSTRING         SourceString
+);
 
 // ******************************************************************
 // * RtlInitializeCriticalSection

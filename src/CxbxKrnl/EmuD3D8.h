@@ -1521,6 +1521,16 @@ HRESULT WINAPI EmuIDirect3DDevice8_GetVertexShaderFunction
 );
 
 // ******************************************************************
+// * func: EmuIDirect3DDevice8_SetDepthClipPlanes
+// ******************************************************************
+HRESULT WINAPI EmuIDirect3DDevice8_SetDepthClipPlanes
+(
+    FLOAT Near,
+    FLOAT Far,
+    DWORD Flags
+);
+
+// ******************************************************************
 // * func: EmuIDirect3D8_AllocContiguousMemory
 // ******************************************************************
 PVOID WINAPI EmuIDirect3D8_AllocContiguousMemory
@@ -1946,21 +1956,10 @@ HRESULT WINAPI EmuIDirect3DDevice8_GetScissors
 	BOOL	*pExclusive, 
 	D3DRECT *pRects
 );
-
 // ******************************************************************
 // * func: EmuIDirect3DDevice8_GetBackMaterial
 // ******************************************************************
 HRESULT WINAPI EmuIDirect3DDevice8_GetBackMaterial(D3DMATERIAL8* pMaterial);
-
-// ******************************************************************
-// * func: EmuIDirect3DDevice8_SetDepthClipPlanes
-// ******************************************************************
-void WINAPI EmuIDirect3DDevice8_SetDepthClipPlanes
-(
-    float Near,
-    float Far,
-    DWORD Flags
-);
 
 // ******************************************************************
 // * func: EmuD3D::LazySetPointParams
