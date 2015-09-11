@@ -665,15 +665,15 @@ SOOVPA<11> IDirectSoundBuffer_SetMaxDistance_1_0_5344 =
 SOOVPA<7> CDirectSoundVoice_SetMinDistance_1_0_5344 =
 {
     0,  // Large == 0
-    7,  // Count == 7
+    6,  // Count == 6
 
-    XREF_DSVOICESETMINDISTANCE,  // Xref Is Saved
+	XREF_DSVOICESETMINDISTANCE,  // Xref Is Saved
     0,  // Xref Not Used
 
     {
         { 0x05, 0x41 },
         { 0x0C, 0x00 },
-        { 0x13, 0x38 },
+        //{ 0x13, 0x38 },		// Does not exist in Futurama
         { 0x1A, 0x00 },
         { 0x21, 0xF6 },
         { 0x28, 0x51 },
@@ -1631,14 +1631,6 @@ OOVPATable DSound_1_0_5233[] =
         "IDirectSoundBuffer8_SetMaxDistance (5344)"
         #endif
     },
-	// CDirectSoundVoice::SetMinDistance (XREF)
-    {
-        (OOVPA*)&CDirectSoundVoice_SetMinDistance_1_0_5344, 0,
-
-        #ifdef _DEBUG_TRACE
-        "CDirectSoundVoice::SetMinDistance (XRef) (5344)"
-        #endif
-    },
     // CDirectSoundBuffer::SetMinDistance (XREF)
     {
         (OOVPA*)&CDirectSoundBuffer_SetMinDistance_1_0_5344, 0,
@@ -1653,7 +1645,7 @@ OOVPATable DSound_1_0_5233[] =
         XTL::EmuIDirectSoundBuffer8_SetMinDistance,
 
         #ifdef _DEBUG_TRACE
-        "IDirectSoundBuffer8_SetMinDistance (5344)"
+        " (5344)"
         #endif
     },
     // CDirectSoundVoice::SetMinDistance (XREF) (* unchanged since 4432 *)
