@@ -194,7 +194,6 @@ extern "C" CXBXKRNL_API void CxbxKrnlInit
 
             printf("EmuMain (0x%X): Cxbx Version %s\n", GetCurrentThreadId(), _CXBX_VERSION);
             printf("EmuMain (0x%X): Debug Console Allocated (DM_CONSOLE).\n", GetCurrentThreadId());
-						getchar();
         }
     }
     else if(DbgMode == DM_FILE)
