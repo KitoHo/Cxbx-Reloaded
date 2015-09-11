@@ -7,3 +7,9 @@ For those interested, somebody mirrored my previous attempt here: https://github
 
 Why do I think it will go better this time around?
 Well, I've been working on my own LLE/HLE hybrid Xbox Emulator (that is far from ready for a public release) and I believe I can use my newly gained knowledge to improve this.
+
+Screenshots taken on Windows 10 64-bit
+![](http://i.imgur.com/uGLHyJS.png)
+![](http://i.imgur.com/0dmvcp4.png)
+![](http://i.imgur.com/ZbPpKiI.png)
+![](http://i.imgur.com/kiE3Fpp.png)
