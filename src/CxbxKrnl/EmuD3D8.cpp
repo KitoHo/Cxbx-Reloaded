@@ -5940,7 +5940,7 @@ HRESULT WINAPI XTL::EmuIDirect3DTexture8_GetSurfaceLevel
            ");\n",
            GetCurrentThreadId(), pThis, Level, ppSurfaceLevel);
 
-    HRESULT hRet;
+	HRESULT hRet = -1;
 
     EmuVerifyResourceIsRegistered(pThis);
 
@@ -5986,7 +5986,7 @@ HRESULT WINAPI XTL::EmuIDirect3DTexture8_GetSurfaceLevel
 
     EmuSwapFS();   // XBox FS
 
-    return hRet;
+	    return hRet;
 }
 
 // ******************************************************************
