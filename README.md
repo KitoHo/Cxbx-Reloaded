@@ -1,6 +1,9 @@
 Cxbx-Reloaded
 =============
 
+It seems I broke things while attempting to merge together the changes between blueshogun's and Echelon9 branches of Cxbx.
+Work will continue on a clean fork of Echelon 9 branch: https://github.com/SoullessSentinel/Cxbx
+
 My second attempt at adding adding support for 64-bit operating systems. 
 I was able to get this partially working around two years previous, however, it was extremely buggy and only booted on 1/3 of my systems.
 For those interested, somebody mirrored my previous attempt here: https://github.com/Darkrush3760/Cxbx-Reloaded
