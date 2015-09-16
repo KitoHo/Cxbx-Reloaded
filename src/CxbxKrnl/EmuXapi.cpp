@@ -34,11 +34,6 @@
 #define _CXBXKRNL_INTERNAL
 #define _XBOXKRNL_DEFEXTRN_
 
-// VS 2015 hack
-#ifndef POINTER_64
-#define POINTER_64 __ptr64
-#endif
-
 #undef FIELD_OFFSET     // prevent macro redefinition warnings
 #include <windows.h>
 //#include <xinput.h>
@@ -490,10 +485,10 @@ DWORD WINAPI XTL::EmuXGetDevices
 
     DWORD ret = 0;
 
-    if(DeviceType->Reserved[0] == 0 && DeviceType->Reserved[1] == 0 && DeviceType->Reserved[2] == 0 && DeviceType->Reserved[3] == 0)
+    if(DeviceType->Reserved[0] == 0 && DeviceType->Reserved[1] == 0 && DeviceType->Reserved[2] == 0)
         ret = (1 << 0);    // Return 1 Controller
     else
-        EmuWarning("Unknown DeviceType (0x%.08X, 0x%.08X, 0x%.08X, 0x%.08X)\n", DeviceType->Reserved[0], DeviceType->Reserved[1], DeviceType->Reserved[2], DeviceType->Reserved[3]);
+        EmuWarning("Unknown DeviceType (0x%.08X, 0x%.08X, 0x%.08X)\n", DeviceType->Reserved[0], DeviceType->Reserved[1], DeviceType->Reserved[2]);
 
     EmuSwapFS();   // XBox FS
 
@@ -526,7 +521,7 @@ BOOL WINAPI XTL::EmuXGetDeviceChanges
     // Return 1 Controller Inserted initially, then no changes forever
     if(bFirst)
     {
-        if(DeviceType->Reserved[0] == 0 && DeviceType->Reserved[1] == 0 && DeviceType->Reserved[2] == 0 && DeviceType->Reserved[3] == 0)
+        if(DeviceType->Reserved[0] == 0 && DeviceType->Reserved[1] == 0 && DeviceType->Reserved[2] == 0)
 		{
 			*pdwInsertions = (1<<0);
 			*pdwRemovals   = 0;
@@ -536,7 +531,7 @@ BOOL WINAPI XTL::EmuXGetDeviceChanges
 		else
 		{
 			// TODO: What if it's not a controller?
-			EmuWarning("Unknown DeviceType (0x%.08X, 0x%.08X, 0x%.08X, 0x%.08X)\n", DeviceType->Reserved[0], DeviceType->Reserved[1], DeviceType->Reserved[2], DeviceType->Reserved[3]);
+			EmuWarning("Unknown DeviceType (0x%.08X, 0x%.08X, 0x%.08X)\n", DeviceType->Reserved[0], DeviceType->Reserved[1], DeviceType->Reserved[2]);
 		}
     }
     else
@@ -1900,18 +1895,6 @@ DWORD WINAPI XTL::EmuXGetLaunchInfo
 		// Delete the file once we're done.
 		DeleteFile("CxbxLaunchData.bin");
 
-		//void* ptr = (void*) 0x416250;
-		//memcpy( ptr, &g_pph, sizeof( XTL::POLLING_PARAMETERS_HANDLE ) );
-		//ptr = (void*) &g_pph;
-
-		// HACK: Initialize XInput from restart
-		/*if(g_bXInputOpenCalled)
-		{
-			EmuSwapFS();
-			XTL::EmuXInputOpen( NULL, 0, 0, NULL );
-			EmuSwapFS();
-		}*/
-
 		dwRet = ERROR_SUCCESS;
 	}
 
@@ -2880,379 +2863,4 @@ BOOL WINAPI XTL::EmuWriteFileEx
 	EmuSwapFS();
 
 	return bRet;
-}
-
-// ******************************************************************
-// * func: EmuWaitForSingleObjectEx
-// ******************************************************************
-DWORD WINAPI XTL::EmuWaitForSingleObjectEx
-(
-	HANDLE hHandle,        // handle to object
-	DWORD dwMilliseconds,  // time-out interval
-	BOOL bAlertable        // alertable option
-)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	printf("EmuXapi (0x%X): EmuWaitForSingleObjectEx\n"
-			"(\n"
-			"   hHandle              : 0x%.08X\n"
-			"   dwMilliseconds       : 0x%.08X\n"
-			"   bAlertable           : 0x%.08X\n"
-			");\n", 
-			GetCurrentThreadId(), hHandle, dwMilliseconds, bAlertable);
-
-	DWORD Ret = WaitForSingleObjectEx( hHandle, dwMilliseconds, bAlertable );
-
-	DbgPrintf( "Finished waiting for 0x%X\n", hHandle );
-
-	EmuSwapFS();
-
-	return Ret;
-}
-
-// ******************************************************************
-// * func: EmuJvsEEPROM_Read
-// ******************************************************************
-DWORD WINAPI XTL::EmuJvsEEPROM_Read
-( 
-	DWORD	Unknown1, 
-	DWORD	Unknown2, 
-	LPVOID  Unknown3, 
-	DWORD	Unknown4 
-)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	/*DbgPrintf("EmuXapi (0x%X): EmuJvsEEPROM_Read\n"
-			"(\n"
-			"   Unknown1             : 0x%.08X\n"
-			"   Unknown2             : 0x%.08X\n"
-			"   Unknown3             : 0x%.08X\n"
-			"   Unknown4             : 0x%.08X\n"
-			");\n", 
-			GetCurrentThreadId(), Unknown1, Unknown2, Unknown3, Unknown4);
-
-	EmuWarning( "JvsEEPROM_Read FOR CHIHIRO NOT IMPLEMENTED!!!" );*/
-
-	EmuSwapFS();
-
-	return 1;
-}
-
-// ******************************************************************
-// * func: EmuJvsBACKUP_Read
-// ******************************************************************
-DWORD WINAPI XTL::EmuJvsBACKUP_Read
-( 
-	DWORD	Unknown1, 
-	DWORD	Unknown2, 
-	LPVOID  Unknown3, 
-	DWORD	Unknown4 
-)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	/*DbgPrintf("EmuXapi (0x%X): EmuJvsBACKUP_Read\n"
-			"(\n"
-			"   Unknown1             : 0x%.08X\n"
-			"   Unknown2             : 0x%.08X\n"
-			"   Unknown3             : 0x%.08X\n"
-			"   Unknown4             : 0x%.08X\n"
-			");\n", 
-			GetCurrentThreadId(), Unknown1, Unknown2, Unknown3, Unknown4);
-
-	EmuWarning( "JvsBACKUP_Read FOR CHIHIRO NOT IMPLEMENTED!!!" );*/
-
-	EmuSwapFS();
-
-	return 1;
-}
-
-// ******************************************************************
-// * func: EmuJvsScFirmwareDownload
-// ******************************************************************
-DWORD WINAPI XTL::EmuJvsScFirmwareDownload
-( 
-	DWORD	Unknown1, 
-	DWORD	Unknown2, 
-	LPVOID  Unknown3, 
-	DWORD	Unknown4 
-)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	/*DbgPrintf("EmuXapi (0x%X): EmuJvsScFirmwareDownload\n"
-			"(\n"
-			"   Unknown1             : 0x%.08X\n"
-			"   Unknown2             : 0x%.08X\n"
-			"   Unknown3             : 0x%.08X\n"
-			"   Unknown4             : 0x%.08X\n"
-			");\n", 
-			GetCurrentThreadId(), Unknown1, Unknown2, Unknown3, Unknown4);
-
-	EmuWarning( "JvsScFirmwareDownload FOR CHIHIRO NOT IMPLEMENTED!!!" );*/
-
-	EmuSwapFS();
-
-	return 1;
-}
-
-// ******************************************************************
-// * func: EmuJvsBACKUP_Write
-// ******************************************************************
-DWORD WINAPI XTL::EmuJvsBACKUP_Write
-( 
-	LPVOID	Unknown1, 
-	LPVOID	Unknown2, 
-	LPVOID  Unknown3, 
-	DWORD	Unknown4 
-)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	/*DbgPrintf("EmuXapi (0x%X): EmuJvsBACKUP_Write\n"
-			"(\n"
-			"   Unknown1             : 0x%.08X\n"
-			"   Unknown2             : 0x%.08X\n"
-			"   Unknown3             : 0x%.08X\n"
-			"   Unknown4             : 0x%.08X\n"
-			");\n", 
-			GetCurrentThreadId(), Unknown1, Unknown2, Unknown3, Unknown4);
-
-	EmuWarning( "JvsBACKUP_Write FOR CHIHIRO NOT IMPLEMENTED!!!" );*/
-
-	EmuSwapFS();
-
-	return 1;
-}
-
-// ******************************************************************
-// * func: EmuJvsEEPROM_Write
-// ******************************************************************
-DWORD WINAPI XTL::EmuJvsEEPROM_Write
-( 
-	LPVOID	Unknown1, 
-	LPVOID	Unknown2, 
-	LPVOID  Unknown3, 
-	DWORD	Unknown4 
-)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	/*DbgPrintf("EmuXapi (0x%X): EmuJvsEEPROM_Write\n"
-			"(\n"
-			"   Unknown1             : 0x%.08X\n"
-			"   Unknown2             : 0x%.08X\n"
-			"   Unknown3             : 0x%.08X\n"
-			"   Unknown4             : 0x%.08X\n"
-			");\n", 
-			GetCurrentThreadId(), Unknown1, Unknown2, Unknown3, Unknown4);
-
-	EmuWarning( "JvsEEPROM_Write FOR CHIHIRO NOT IMPLEMENTED!!!" );*/
-
-	EmuSwapFS();
-
-	return 1;
-}
-
-// ******************************************************************
-// * func: EmuJvsFirmwareUpload
-// ******************************************************************
-DWORD WINAPI XTL::EmuJvsFirmwareUpload
-( 
-	LPVOID	Unknown1, 
-	LPVOID	Unknown2, 
-	LPVOID  Unknown3, 
-	DWORD	Unknown4 
-)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	/*DbgPrintf("EmuXapi (0x%X): EmuJvsFirmwareUpload\n"
-			"(\n"
-			"   Unknown1             : 0x%.08X\n"
-			"   Unknown2             : 0x%.08X\n"
-			"   Unknown3             : 0x%.08X\n"
-			"   Unknown4             : 0x%.08X\n"
-			");\n", 
-			GetCurrentThreadId(), Unknown1, Unknown2, Unknown3, Unknown4);
-
-	EmuWarning( "JvsFirmwareUpload FOR CHIHIRO NOT IMPLEMENTED!!!" );*/
-
-	EmuSwapFS();
-
-	return 1;
-}
-
-// ******************************************************************
-// * func: EmuJvsScFirmwareUpload
-// ******************************************************************
-DWORD WINAPI XTL::EmuJvsScFirmwareUpload
-( 
-	LPVOID	Unknown1, 
-	LPVOID	Unknown2, 
-	LPVOID  Unknown3, 
-	DWORD	Unknown4 
-)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	/*DbgPrintf("EmuXapi (0x%X): EmuJvsScFirmwareUpload\n"
-			"(\n"
-			"   Unknown1             : 0x%.08X\n"
-			"   Unknown2             : 0x%.08X\n"
-			"   Unknown3             : 0x%.08X\n"
-			"   Unknown4             : 0x%.08X\n"
-			");\n", 
-			GetCurrentThreadId(), Unknown1, Unknown2, Unknown3, Unknown4);
-
-	EmuWarning( "JvsScFirmwareUpload FOR CHIHIRO NOT IMPLEMENTED!!!" );*/
-
-	EmuSwapFS();
-
-	return 1;
-}
-
-// ******************************************************************
-// * func: EmuJvsFirmwareDownload
-// ******************************************************************
-DWORD WINAPI XTL::EmuJvsFirmwareDownload
-( 
-	DWORD	Unknown1, 
-	DWORD	Unknown2, 
-	LPVOID  Unknown3, 
-	DWORD	Unknown4 
-)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	/*DbgPrintf("EmuXapi (0x%X): EmuJvsFirmwareDownload\n"
-			"(\n"
-			"   Unknown1             : 0x%.08X\n"
-			"   Unknown2             : 0x%.08X\n"
-			"   Unknown3             : 0x%.08X\n"
-			"   Unknown4             : 0x%.08X\n"
-			");\n", 
-			GetCurrentThreadId(), Unknown1, Unknown2, Unknown3, Unknown4);
-
-	EmuWarning( "JvsFirmwareDownload FOR CHIHIRO NOT IMPLEMENTED!!!" );*/
-
-	EmuSwapFS();
-
-	return 1;
-}
-
-// ******************************************************************
-// * func: EmuJvsRTC_Read
-// ******************************************************************
-DWORD WINAPI XTL::EmuJvsRTC_Read
-( 
-	DWORD	Unknown1, 
-	DWORD	Unknown2, 
-	LPVOID  Unknown3, 
-	DWORD	Unknown4 
-)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	/*DbgPrintf("EmuXapi (0x%X): EmuJvsRTC_Read\n"
-			"(\n"
-			"   Unknown1             : 0x%.08X\n"
-			"   Unknown2             : 0x%.08X\n"
-			"   Unknown3             : 0x%.08X\n"
-			"   Unknown4             : 0x%.08X\n"
-			");\n", 
-			GetCurrentThreadId(), Unknown1, Unknown2, Unknown3, Unknown4);
-
-	EmuWarning( "JvsRTC_Read FOR CHIHIRO NOT IMPLEMENTED!!!" );*/
-
-	EmuSwapFS();
-
-	return 1;
-}
-
-// ******************************************************************
-// * func: EmuJvsNodeSendPacket
-// ******************************************************************
-VOID WINAPI XTL::EmuJvsNodeSendPacket
-(
-	LPVOID	Unknown1,
-	LPVOID  Unknown2,
-	LPVOID  Unknown3
-)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	/*DbgPrintf("EmuXapi (0x%X): EmuJvsNodeSendPacket\n"
-			"(\n"
-			"   Unknown1             : 0x%.08X\n"
-			"   Unknown2             : 0x%.08X\n"
-			"   Unknown3             : 0x%.08X\n"
-			");\n", 
-			GetCurrentThreadId(), Unknown1, Unknown2, Unknown3);
-
-	EmuWarning( "JvsNodeSendPacket FOR CHIHIRO NOT IMPLEMENTED!!!" );*/
-
-	EmuSwapFS();
-}
-
-// ******************************************************************
-// * func: EmuJvsNodeReceivePacket
-// ******************************************************************
-VOID WINAPI XTL::EmuJvsNodeReceivePacket
-(
-	LPVOID	Unknown1,
-	LPVOID  Unknown2,
-	LPVOID  Unknown3
-)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	/*DbgPrintf("EmuXapi (0x%X): EmuJvsNodeReceivePacket\n"
-			"(\n"
-			"   Unknown1             : 0x%.08X\n"
-			"   Unknown2             : 0x%.08X\n"
-			"   Unknown3             : 0x%.08X\n"
-			");\n", 
-			GetCurrentThreadId(), Unknown1, Unknown2, Unknown3);
-
-	EmuWarning( "JvsNodeReceivePacket FOR CHIHIRO NOT IMPLEMENTED!!!" );*/
-
-	EmuSwapFS();
-}
-
-// ******************************************************************
-// * func: EmuJVS_SendCommand
-// ******************************************************************
-VOID WINAPI XTL::EmuJVS_SendCommand
-(
-	LPVOID	Unknown1,
-	LPVOID	Unknown2,
-	LPVOID	Unknown3,
-	LPVOID	Unknown4,
-	LPVOID	Unknown5,
-	LPVOID	Unknown6,
-	LPVOID	Unknown7,
-	LPVOID	Unknown8
-)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	/*DbgPrintf("EmuXapi (0x%X): EmuJVS_SendCommand\n"
-			"(\n"
-			"   Unknown1             : 0x%.08X\n"
-			"   Unknown2             : 0x%.08X\n"
-			"   Unknown3             : 0x%.08X\n"
-			"   Unknown4             : 0x%.08X\n"
-			"   Unknown5             : 0x%.08X\n"
-			"   Unknown6             : 0x%.08X\n"
-			"   Unknown7             : 0x%.08X\n"
-			"   Unknown8             : 0x%.08X\n"
-			");\n", 
-			GetCurrentThreadId(), Unknown1, Unknown2, Unknown3, Unknown4, Unknown5, Unknown6, Unknown7, Unknown8);
-
-	EmuWarning( "JVS_SendCommand FOR CHIHIRO NOT IMPLEMENTED!!!" );*/
-
-	EmuSwapFS();
 }

@@ -1,10 +1,9 @@
-//------------------------------------------------------------------------------
-// File: DShow.h
+///////////////////////////////////////////////////////////////////////////
+// Copyright (C) 2000 Microsoft Corporation.  All Right Reserved.
 //
-// Desc: DirectShow top-level include file
-//
-// Copyright (c) 2000-2001, Microsoft Corporation.  All rights reserved.
-//------------------------------------------------------------------------------
+// File:		dshow.h
+// Content:     DirectShow top-level include file
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef __DSHOW_INCLUDED__
 #define __DSHOW_INCLUDED__
@@ -12,8 +11,8 @@
 ///////////////////////////////////////////////////////////////////////////
 // Set up constants & pragmas for the compiler
 ///////////////////////////////////////////////////////////////////////////
-#ifdef  _MSC_VER
-// disable some level-4 warnings, use #pragma warning(default:###) to re-enable
+#ifdef	_MSC_VER
+// disable some level-4 warnings, use #pragma warning(enable:###) to re-enable
 #pragma warning(disable:4100) // warning C4100: unreferenced formal parameter
 #pragma warning(disable:4201) // warning C4201: nonstandard extension used : nameless struct/union
 #pragma warning(disable:4511) // warning C4511: copy constructor could not be generated
@@ -25,7 +24,7 @@
 #else
 #define AM_NOVTABLE
 #endif
-#endif  // MSC_VER
+#endif	// MSC_VER
 
 ///////////////////////////////////////////////////////////////////////////
 // Include standard Windows files

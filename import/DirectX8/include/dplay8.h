@@ -84,6 +84,7 @@ typedef	struct IDirectPlay8Peer     *PDIRECTPLAY8PEER;
 typedef	struct IDirectPlay8Server	*PDIRECTPLAY8SERVER;
 typedef	struct IDirectPlay8Client	*PDIRECTPLAY8CLIENT;
 
+
 /****************************************************************************
  *
  * DirectPlay8 Forward Declarations For External Types
@@ -354,8 +355,8 @@ typedef struct	_DPN_APPLICATION_DESC
 //
 typedef struct	_BUFFERDESC
 {
-	DWORD	dwBufferSize;		
-	BYTE * 	pBufferData;		
+	DWORD	            dwBufferSize;		
+	BYTE * UNALIGNED    pBufferData;		
 } BUFFERDESC, DPN_BUFFER_DESC, *PDPN_BUFFER_DESC;
 
 typedef BUFFERDESC	FAR * PBUFFERDESC;
@@ -405,7 +406,6 @@ typedef struct _DPN_CONNECTION_INFO
 	DWORD	dwMessagesReceived;
 
 } DPN_CONNECTION_INFO, *PDPN_CONNECTION_INFO;
-
 
 //
 // Group information strucutre
@@ -743,13 +743,7 @@ typedef struct	_DPNMSG_TERMINATE_SESSION
  *
  ****************************************************************************/
 
-/*
- * This function is no longer supported.  It is recommended that CoCreateInstance be used to create 
- * DirectPlay8 objects.
- *
- * extern HRESULT WINAPI DirectPlay8Create( const GUID * pcIID, void **ppvInterface, IUnknown *pUnknown);
- * 
- */
+extern HRESULT WINAPI DirectPlay8Create( const GUID * pcIID, void **ppvInterface, IUnknown *pUnknown);
 
 /****************************************************************************
  *
@@ -787,7 +781,7 @@ DECLARE_INTERFACE_(IDirectPlay8Client,IUnknown)
     STDMETHOD(SetSPCaps)                (THIS_ const GUID * const pguidSP, const DPN_SP_CAPS *const pdpspCaps, const DWORD dwFlags ) PURE;
     STDMETHOD(GetSPCaps)                (THIS_ const GUID * const pguidSP,DPN_SP_CAPS *const pdpspCaps,const DWORD dwFlags) PURE;
     STDMETHOD(GetConnectionInfo)        (THIS_ DPN_CONNECTION_INFO *const pdpConnectionInfo,const DWORD dwFlags) PURE;
-	STDMETHOD(RegisterLobby)			(THIS_ const DPNHANDLE dpnHandle, struct IDirectPlay8LobbiedApplication *const pIDP8LobbiedApplication,const DWORD dwFlags) PURE;
+	STDMETHOD(RegisterLobby)			(THIS_ const DPNHANDLE dpnHandle, IDirectPlay8LobbiedApplication *const pIDP8LobbiedApplication,const DWORD dwFlags) PURE;
 };
 
 //
@@ -832,7 +826,7 @@ DECLARE_INTERFACE_(IDirectPlay8Server,IUnknown)
     STDMETHOD(SetSPCaps)                (THIS_ const GUID * const pguidSP, const DPN_SP_CAPS *const pdpspCaps, const DWORD dwFlags ) PURE;
     STDMETHOD(GetSPCaps)                (THIS_ const GUID * const pguidSP, DPN_SP_CAPS *const pdpspCaps,const DWORD dwFlags) PURE;
     STDMETHOD(GetConnectionInfo)        (THIS_ const DPNID dpnid, DPN_CONNECTION_INFO *const pdpConnectionInfo,const DWORD dwFlags) PURE;
-	STDMETHOD(RegisterLobby)			(THIS_ const DPNHANDLE dpnHandle, struct IDirectPlay8LobbiedApplication *const pIDP8LobbiedApplication,const DWORD dwFlags) PURE;
+	STDMETHOD(RegisterLobby)			(THIS_ const DPNHANDLE dpnHandle, IDirectPlay8LobbiedApplication *const pIDP8LobbiedApplication,const DWORD dwFlags) PURE;
 };
 
 //
@@ -879,7 +873,7 @@ DECLARE_INTERFACE_(IDirectPlay8Peer,IUnknown)
     STDMETHOD(SetSPCaps)                (THIS_ const GUID * const pguidSP, const DPN_SP_CAPS *const pdpspCaps, const DWORD dwFlags ) PURE;
     STDMETHOD(GetSPCaps)                (THIS_ const GUID * const pguidSP, DPN_SP_CAPS *const pdpspCaps,const DWORD dwFlags) PURE;
     STDMETHOD(GetConnectionInfo)        (THIS_ const DPNID dpnid, DPN_CONNECTION_INFO *const pdpConnectionInfo,const DWORD dwFlags) PURE;
-	STDMETHOD(RegisterLobby)			(THIS_ const DPNHANDLE dpnHandle, struct IDirectPlay8LobbiedApplication *const pIDP8LobbiedApplication,const DWORD dwFlags) PURE;
+	STDMETHOD(RegisterLobby)			(THIS_ const DPNHANDLE dpnHandle, IDirectPlay8LobbiedApplication *const pIDP8LobbiedApplication,const DWORD dwFlags) PURE;
 	STDMETHOD(TerminateSession)			(THIS_ void *const pvTerminateData,const DWORD dwTerminateDataSize,const DWORD dwFlags) PURE;
 };
 

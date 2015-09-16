@@ -47,9 +47,7 @@ static void  EmuInstallWrappers(OOVPATable *OovpaTable, uint32 OovpaTableSize, X
 static void  EmuXRefFailure();
 
 #include <shlobj.h>
-#define _CMATH_
 #include <vector>
-#undef _CMATH_
 
 uint32 fcount = 0;
 uint32 funcExclude[2048] = {0};

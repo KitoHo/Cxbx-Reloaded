@@ -182,7 +182,7 @@ OOVPATable XOnline_1_0_5233[] =
     /*{
         (OOVPA*)&listen_1_0_4361,
 
-        MFPtoFP<XTL::EmuThis>(XTL::EmuThis::Emulisten),
+        MFPtoFP<XTL::EmuThis>(&XTL::EmuThis::Emulisten),
 
         #ifdef _DEBUG_TRACE
         "Emulisten"

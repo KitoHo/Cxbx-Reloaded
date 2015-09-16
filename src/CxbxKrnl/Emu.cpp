@@ -279,9 +279,10 @@ extern int EmuException(LPEXCEPTION_POINTERS e)
         }
     }
 
-	// Smashing drive *NTSC* 
+	
 	if(e->ExceptionRecord->ExceptionCode == 0xC0000005)
 	{
+		// Smashing drive *NTSC* 
 		if(e->ContextRecord->Eip == 0xA41F5)
 		{
 			// Skip call to D3D::SwapStart(class D3D::CDevice *)
@@ -292,11 +293,8 @@ extern int EmuException(LPEXCEPTION_POINTERS e)
 
 			return EXCEPTION_CONTINUE_EXECUTION;
 		}
-	}
 
-	// House of the Dead 3 *NTSC*
-	if(e->ExceptionRecord->ExceptionCode == 0xC0000005)
-	{
+		// House of the Dead 3 *NTSC*
 		if(e->ContextRecord->Eip == 0xB961E)
 		{
 			e->ContextRecord->Eip += 2;
@@ -744,42 +742,6 @@ extern int EmuException(LPEXCEPTION_POINTERS e)
 			e->ContextRecord->Eip += 1;
 
 			DbgPrintf("EmuMain (0x%X): Skipping privileged instruction (STI)\n", GetCurrentThreadId());
-
-			g_bEmuException = false;
-
-			return EXCEPTION_CONTINUE_EXECUTION;
-		}
-
-		// OUT DX, AL
-		if(*((BYTE*)dwEip) == 0xEE)
-		{
-			e->ContextRecord->Eip += 1;
-
-			//DbgPrintf("EmuMain (0x%X): Skipping privileged instruction (OUT DX, AL)\n", GetCurrentThreadId());
-
-			g_bEmuException = false;
-
-			return EXCEPTION_CONTINUE_EXECUTION;
-		}
-
-		// OUT DX, AX
-		if(*((BYTE*)dwEip) == 0x66 && *((BYTE*)dwEip+1) == 0xEF)
-		{
-			e->ContextRecord->Eip += 2;
-
-			//DbgPrintf("EmuMain (0x%X): Skipping privileged instruction (OUT DX, AX)\n", GetCurrentThreadId());
-
-			g_bEmuException = false;
-
-			return EXCEPTION_CONTINUE_EXECUTION;
-		}
-
-		// IN AX, DX
-		if(*((BYTE*)dwEip) == 0x66 && *((BYTE*)dwEip+1) == 0xED)
-		{
-			e->ContextRecord->Eip += 2;
-
-			//DbgPrintf("EmuMain (0x%X): Skipping privileged instruction (IN AX, DX)\n", GetCurrentThreadId());
 
 			g_bEmuException = false;
 

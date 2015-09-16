@@ -323,8 +323,6 @@ void Exe::Export(const char *x_szExeFilename)
                 goto cleanup;
             }
 
-            fflush(ExeFile);
-
             printf("OK\n");
         }
     }
@@ -342,7 +340,7 @@ void Exe::Export(const char *x_szExeFilename)
         printf("OK\n");
     }
 
-	fflush( ExeFile );
+    fflush(ExeFile);
 
 cleanup:
 

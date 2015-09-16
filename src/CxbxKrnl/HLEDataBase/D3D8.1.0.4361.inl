@@ -92,7 +92,6 @@ SOOVPA<8> IDirect3D8_CheckDeviceFormat_1_0_4361 =
     }
 };
 
-
 // ******************************************************************
 // * IDirect3DDevice8_SetVerticalBlankCallback
 // ******************************************************************
@@ -416,30 +415,6 @@ SOOVPA<9> IDirect3DDevice8_CaptureStateBlock_1_0_4361 =
         { 0xAC, 0x00 }, // (Offset,Value)-Pair #9
     }
 };
-
-
-// ******************************************************************
-// * D3DDevice_DeleteStateBlock
-// ******************************************************************
-SOOVPA<7> D3DDevice_DeleteStateBlock_1_0_4361 =
-{
-	0,  // Large == 0
-	7,  // Count == 7
-
-	-1, // Xref Not Saved
-	0,  // Xref Not Used
-
-	{
-		{ 0x11, 0x76 },
-		{ 0x24, 0x3B },
-		{ 0x37, 0xE8 },
-		{ 0x4A, 0x50 },
-		{ 0x5D, 0x74 },
-		{ 0x70, 0x06 },
-		{ 0x83, 0xEB },
-	}
-};
-
 
 // ******************************************************************
 // * IDirect3DDevice8_ApplyStateBlock
@@ -1993,7 +1968,7 @@ SOOVPA<11> IDirect3DDevice8_SetFlickerFilter_1_0_4361 =
     {
         // IDirect3DDevice8_SetFlickerFilter+0x1C : mov eax, [eax+0x2268]
         { 0x1D, 0x80 }, // (Offset,Value)-Pair #2
-        { 0x1E, 0x7C }, // (Offset,Value)-Pair #3
+        { 0x1E, 0x68 }, // (Offset,Value)-Pair #3
         { 0x1F, 0x22 }, // (Offset,Value)-Pair #4
 
         // IDirect3DDevice8_SetFlickerFilter+0x22 : push 0; push esi; push 0x0B; push eax
@@ -2518,15 +2493,6 @@ OOVPATable D3D8_1_0_4361[] =
         "EmuIDirect3DDevice8_CaptureStateBlock"
         #endif
     },
-	// D3DDevice_DeleteStateBlock
-	{
-		(OOVPA*)&D3DDevice_DeleteStateBlock_1_0_4361,
-		XTL::EmuIDirect3DDevice8_DeleteStateBlock,
-
-#ifdef _DEBUG_TRACE
-			"EmuIDirect3DDevice8_DeleteStateBlock"
-#endif
-	},
     // IDirect3DDevice8::ApplyStateBlock
     {
         (OOVPA*)&IDirect3DDevice8_ApplyStateBlock_1_0_4361,
@@ -3409,6 +3375,15 @@ OOVPATable D3D8_1_0_4361[] =
         "EmuIDirect3DDevice8_SetPixelShaderConstant"
         #endif
     },
+		// D3DDevice_DeleteStateBlock (*Unchanged since 3925 *)
+		{
+			(OOVPA*)&D3DDevice_DeleteStateBlock_1_0_3925,
+			XTL::EmuIDirect3DDevice8_DeleteStateBlock,
+
+#ifdef _DEBUG_TRACE
+			"EmuIDirect3DDevice8_DeleteStateBlock"
+#endif
+		},
 	// IDirect3DDevice8::DeletePixelShader (* unchanged since 4134 *)
     {
         (OOVPA*)&IDirect3DDevice8_DeletePixelShader_1_0_4134,
@@ -3605,15 +3580,15 @@ OOVPATable D3D8_1_0_4361[] =
         #endif
     },
 	// IDirect3DDevice8::SetVerticalBlankCallback
-	{
-		(OOVPA*)&IDirect3DDevice8_SetVerticalBlankCallback_1_0_4361,
+		{
+			(OOVPA*)&IDirect3DDevice8_SetVerticalBlankCallback_1_0_4361,
 
-		XTL::EmuIDirect3DDevice8_SetVerticalBlankCallback,
+			XTL::EmuIDirect3DDevice8_SetVerticalBlankCallback,
 
 #ifdef _DEBUG_TRACE
 			"EmuIDirect3DDevice8_SetVerticalBlankCallback"
 #endif
-	},
+		},
 	// IDirect3DDevice8::SetVertexData2f
     {
         (OOVPA*)&D3DDevice_SetVertexData2f_1_0_4361,

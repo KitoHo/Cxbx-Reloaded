@@ -275,14 +275,8 @@ typedef struct _DPL_MESSAGE_SESSION_STATUS
  * DirectPlay8Lobby Create
  *
  ****************************************************************************/
- 
-/*
- * This function is no longer supported.  It is recommended that CoCreateInstance be used to create 
- * DirectPlay8 lobby objects. 
- *
- * extern HRESULT WINAPI DirectPlay8LobbyCreate( const GUID * pcIID, void **ppvInterface, IUnknown *pUnknown);
- *
- */
+
+extern HRESULT WINAPI DirectPlay8LobbyCreate( const GUID * pcIID, void **ppvInterface, IUnknown *pUnknown);
 
 /****************************************************************************
  *

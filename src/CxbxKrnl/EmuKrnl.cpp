@@ -86,7 +86,7 @@ struct INTERNAL_CRITICAL_SECTION
 	NtDll::_RTL_CRITICAL_SECTION NativeCriticalSection;
 };
 
-#define MAX_XBOX_CRITICAL_SECTIONS 2048
+#define MAX_XBOX_CRITICAL_SECTIONS 1024
 INTERNAL_CRITICAL_SECTION GlobalCriticalSections[MAX_XBOX_CRITICAL_SECTIONS] = {0};
 
 void InitializeSectionStructures(void)
@@ -1359,6 +1359,152 @@ XBSYSAPI EXPORTNUM(15) xboxkrnl::PVOID NTAPI xboxkrnl::ExAllocatePoolWithTag
 }
 
 // ******************************************************************
+// * 0x0011 ExFreePool
+// ******************************************************************
+XBSYSAPI EXPORTNUM(17) VOID NTAPI xboxkrnl::ExFreePool
+(
+	IN PVOID	P
+)
+{
+	EmuSwapFS();	// Win2k/XP FS
+	
+	DbgPrintf("EmuKrnl (0x%X): ExFreePool\n"
+           "(\n"
+           "   P                  : 0x%.08X\n"
+           ");\n",
+           GetCurrentThreadId(), P);
+
+	CxbxFree(P);
+
+	EmuSwapFS();	// Xbox FS
+}
+
+// ******************************************************************
+// * 0x0018 ExQueryNonVolatileSetting
+// ******************************************************************
+XBSYSAPI EXPORTNUM(24) xboxkrnl::NTSTATUS NTAPI xboxkrnl::ExQueryNonVolatileSetting
+(
+    IN  EEPROM_INDEX        ValueIndex,
+    OUT DWORD              *Type,
+    OUT PUCHAR              Value,
+    IN  SIZE_T              ValueLength,
+    OUT PSIZE_T             ResultLength OPTIONAL
+)
+{
+    EmuSwapFS();   // Win2k/XP FS
+
+    DbgPrintf("EmuKrnl (0x%X): ExQueryNonVolatileSetting\n"
+           "(\n"
+           "   ValueIndex          : 0x%.08X\n"
+           "   Type                : 0x%.08X\n"
+           "   Value               : 0x%.08X\n"
+           "   ValueLength         : 0x%.08X\n"
+           "   ResultLength        : 0x%.08X\n"
+           ");\n",
+           GetCurrentThreadId(), ValueIndex, Type, Value, ValueLength, ResultLength);
+
+    if (!Type || !Value)
+        CxbxKrnlCleanup("Assertion in ExQueryNonVolatileSetting()");
+
+    NTSTATUS ret = STATUS_SUCCESS;
+
+    // handle eeprom read
+    switch(ValueIndex)
+    {
+        // Factory Game Region
+        case EEPROM_FACTORY_GAME_REGION:
+        {
+            // TODO: configurable region or autodetect of some sort
+            if(ResultLength != 0)
+                *ResultLength = 0x04;
+
+            if(ValueLength >= 4) {
+                *Type = 0x04;
+                *Value = 0x01;  // North America
+            }
+        }
+        break;
+
+        // Factory AV Region
+        case EEPROM_FACTORY_AV_REGION:
+        {
+            // TODO: configurable region or autodetect of some sort
+            if(ResultLength != 0)
+                *ResultLength = 0x04;
+			
+            *Type = 0x04;
+            *Value = 0x01; // NTSC_M
+        }
+        break;
+
+        // Language
+        case EEPROM_LANGUAGE:
+        {
+            // TODO: configurable language or autodetect of some sort
+            if(ResultLength != 0)
+                *ResultLength = 0x04;
+
+            *Type = 0x04;
+            *Value = 0x01;  // English
+        }
+        break;
+
+        // Video Flag
+        case EEPROM_VIDEO:
+        {
+            // TODO: configurable video flags or autodetect of some sort
+            if(ResultLength != 0)
+                *ResultLength = 0x04;
+
+            *Type = 0x04;
+            *Value = 0x10;  // Letterbox
+        }
+        break;
+
+        // Audio Flags
+        case EEPROM_AUDIO:
+        {
+            if(ResultLength != 0)
+                *ResultLength = 0x04;            
+            
+            *Type = 0x04;
+            *Value = 0;  // Stereo, no AC3, no DTS
+        }
+        break;
+
+        case EEPROM_MISC:
+        {
+            if(ResultLength != 0)
+                *ResultLength = 0x04;
+            
+            *Type  = 0x04;
+            *Value = 0;  // No automatic power down
+        }
+        break;
+
+        case EEPROM_MAX_OS:
+        {
+            // This is called to return a complete XBOX_USER_SETTINGS structure
+            //
+            // One example is from XapipQueryTimeZoneInformation(), where it is used to
+            // detect the local timezone information.
+
+            // TODO
+        }
+        break;
+
+        default:
+            EmuWarning("ExQueryNonVolatileSetting unknown ValueIndex (%d)", ValueIndex);
+            ret = STATUS_OBJECT_NAME_NOT_FOUND;
+            break;
+    }
+
+    EmuSwapFS();   // Xbox FS
+
+    return ret;
+}
+
+// ******************************************************************
 // * 0x0019 - ExReadWriteRefurbInfo
 // ******************************************************************
 XBSYSAPI EXPORTNUM(25) xboxkrnl::NTSTATUS NTAPI xboxkrnl::ExReadWriteRefurbInfo
@@ -1382,159 +1528,6 @@ XBSYSAPI EXPORTNUM(25) xboxkrnl::NTSTATUS NTAPI xboxkrnl::ExReadWriteRefurbInfo
 	EmuWarning( "ExReadWriteRefurbInfo ignored!" );
 
 	EmuSwapFS();	// Xbox FS
-
-	return STATUS_SUCCESS;
-}
-
-// ******************************************************************
-// * 0x0011 ExFreePool
-// ******************************************************************
-XBSYSAPI EXPORTNUM(17) VOID NTAPI xboxkrnl::ExFreePool
-(
-	IN PVOID	P
-)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	DbgPrintf("EmuKrnl (0x%X): ExFreePool\n"
-		"(\n"
-		"   P                  : 0x%.08X\n"
-		");\n",
-		GetCurrentThreadId(), P);
-
-	CxbxFree(P);
-
-	EmuSwapFS();	// Xbox FS
-}
-
-
-// ******************************************************************
-// * 0x0018 ExQueryNonVolatileSetting
-// ******************************************************************
-XBSYSAPI EXPORTNUM(24) xboxkrnl::NTSTATUS NTAPI xboxkrnl::ExQueryNonVolatileSetting
-(
-	IN  DWORD               ValueIndex,
-	OUT DWORD              *Type,
-	OUT PUCHAR              Value,
-	IN  SIZE_T              ValueLength,
-	OUT PSIZE_T             ResultLength OPTIONAL
-	)
-{
-	EmuSwapFS();   // Win2k/XP FS
-
-	DbgPrintf("EmuKrnl (0x%X): ExQueryNonVolatileSetting\n"
-		"(\n"
-		"   ValueIndex          : 0x%.08X\n"
-		"   Type                : 0x%.08X\n"
-		"   Value               : 0x%.08X\n"
-		"   ValueLength         : 0x%.08X\n"
-		"   ResultLength        : 0x%.08X\n"
-		");\n",
-		GetCurrentThreadId(), ValueIndex, Type, Value, ValueLength, ResultLength);
-
-	// handle eeprom read
-	switch (ValueIndex)
-	{
-		// Factory Game Region
-	case 0x104:
-	{
-		// TODO: configurable region or autodetect of some sort
-		if (Type != 0)
-			*Type = 0x04;
-
-		if (Value != 0)
-			*Value = 0x01;  // North America
-
-		if (ResultLength != 0)
-			*ResultLength = 0x04;
-	}
-	break;
-
-	// Factory AC Region
-	case 0x103:
-	{
-		// TODO: configurable region or autodetect of some sort
-		if (Type != 0)
-			*Type = 0x04;
-
-		if (Value != 0)
-			*Value = 0x01; // NTSC_M
-
-		if (ResultLength != 0)
-			*ResultLength = 0x04;
-	}
-	break;
-
-	// Language
-	case 0x007:
-	{
-		// TODO: configurable language or autodetect of some sort
-		if (Type != 0)
-			*Type = 0x04;
-
-		if (Value != 0)
-			*Value = 0x01;  // English
-
-		if (ResultLength != 0)
-			*ResultLength = 0x04;
-	}
-	break;
-
-	// Video Flags
-	case 0x008:
-	{
-		// TODO: configurable video flags or autodetect of some sort
-		if (Type != 0)
-			*Type = 0x04;
-
-		if (Value != 0)
-			*Value = 0x10;  // Letterbox
-
-		if (ResultLength != 0)
-			*ResultLength = 0x04;
-	}
-	break;
-
-	// Audio Flags
-	case 0x009:
-	{
-		if (Type != 0)
-			*Type = 0x04;
-
-		if (Value != 0)
-			*Value = 0;
-
-		if (ResultLength != 0)
-			*ResultLength = 0x04;
-	}
-
-	case EEPROM_MISC:
-	{
-		if (Type != 0)
-			*Type = 0x04;
-
-		if (Value != 0)
-			*Value = 0;
-
-		if (ResultLength != 0)
-			*ResultLength = 0x04;
-	}
-	break;
-
-	/* Timezone info
-	case 0x0FF:
-	{
-	_asm int 3;
-	}
-	break;
-	//*/
-
-	default:
-		EmuWarning("ExQueryNonVolatileSetting unknown ValueIndex (%d)", ValueIndex);
-		break;
-	}
-
-	EmuSwapFS();   // Xbox FS
 
 	return STATUS_SUCCESS;
 }
@@ -1569,22 +1562,6 @@ XBSYSAPI EXPORTNUM(29) xboxkrnl::NTSTATUS NTAPI xboxkrnl::ExSaveNonVolatileSetti
 }
 
 // ******************************************************************
-// * 0x0023 - FscGetCacheSize
-// ******************************************************************
-XBSYSAPI EXPORTNUM(35) xboxkrnl::DWORD NTAPI xboxkrnl::FscGetCacheSize()
-{
-	EmuSwapFS();   // Win2k/XP FS
-
-    DbgPrintf("EmuKrnl (0x%X): FscGetCacheSize()", GetCurrentThreadId());
-
-    EmuWarning("FscGetCacheSize returning default 64kb");
-
-    EmuSwapFS();   // Xbox FS
-
-	return 64*1024;
-}
-
-// ******************************************************************
 // * 0x0025 - FscSetCacheSize
 // ******************************************************************
 XBSYSAPI EXPORTNUM(37) xboxkrnl::LONG NTAPI xboxkrnl::FscSetCacheSize(ULONG uCachePages)
@@ -1605,90 +1582,38 @@ XBSYSAPI EXPORTNUM(37) xboxkrnl::LONG NTAPI xboxkrnl::FscSetCacheSize(ULONG uCac
 }
 
 // ******************************************************************
-// * HalGetInterruptVector
-// ******************************************************************
-XBSYSAPI EXPORTNUM(44) xboxkrnl::ULONG  NTAPI xboxkrnl::HalGetInterruptVector
-(
-    IN ULONG   InterruptLevel,
-    OUT CHAR*  Irql
-)
-{
-	EmuSwapFS();   // Win2k/XP FS
-
-    DbgPrintf("EmuKrnl (0x%X): HalRegisterShutdownNotification\n"
-           "(\n"
-           "   InterruptLevel      : 0x%.08X\n"
-		   "   Irql                : 0x%.08X\n"
-           ");\n",
-           GetCurrentThreadId(), InterruptLevel, Irql);
-
-	// I'm only adding this for Virtua Cop 3 (Chihiro). Xbox games need not emulate this.
-
-	EmuWarning( "HalGetInterruptVector(): If this is NOT a Chihiro game, tell blueshogun!" );
-
-    EmuSwapFS();   // Xbox FS
-
-	return 1;
-}
-
-// ******************************************************************
-// * 0x002F - HalRegisterShutdownNotification
-// ******************************************************************
-XBSYSAPI EXPORTNUM(47) VOID NTAPI xboxkrnl::HalRegisterShutdownNotification
-(
-	PVOID	ShutdownRegistration,
-	CHAR	Register
-)
-{
-	EmuSwapFS();   // Win2k/XP FS
-
-    DbgPrintf("EmuKrnl (0x%X): HalRegisterShutdownNotification\n"
-           "(\n"
-           "   ShutdownRegistration : 0x%.08X\n"
-		   "   Register             : 0x%.08X\n"
-           ");\n",
-           GetCurrentThreadId(), ShutdownRegistration, Register);
-
-	// I'm only adding this for Virtua Cop 3 (Chihiro). Xbox games need not emulate this.
-
-	EmuWarning( "HalRegisterShutdownNotification(): If this is NOT a Chihiro game, tell blueshogun!" );
-
-    EmuSwapFS();   // Xbox FS
-}
-
-// ******************************************************************
 // * 0x002D - HalReadSMBusValue
 // ******************************************************************
 XBSYSAPI EXPORTNUM(45) xboxkrnl::NTSTATUS NTAPI xboxkrnl::HalReadSMBusValue
 (
-	IN  UCHAR               Address,
-	IN  UCHAR               Command,
-	IN  BOOLEAN             ReadWord,
-	OUT PULONG              DataValue
-	)
+    IN  UCHAR               Address,
+    IN  UCHAR               Command,
+    IN  BOOLEAN             ReadWord,
+    OUT PULONG              DataValue
+)
 {
 	EmuSwapFS();   // Win2k/XP FS
 
-	DbgPrintf("EmuKrnl (0x%X): HalReadSMBusValue\n"
-		"(\n"
-		"   Address             : 0x%.08X\n"
-		"   Command             : 0x%.08X\n"
-		"   ReadWord            : 0x%.08X\n"
-		"   DataValue           : 0x%.08X\n"
-		");\n",
-		GetCurrentThreadId(), Address, Command, ReadWord, DataValue);
+    DbgPrintf("EmuKrnl (0x%X): HalReadSMBusValue\n"
+           "(\n"
+           "   Address             : 0x%.08X\n"
+           "   Command             : 0x%.08X\n"
+           "   ReadWord            : 0x%.08X\n"
+           "   DataValue           : 0x%.08X\n"
+           ");\n",
+           GetCurrentThreadId(), Address, Command, ReadWord, DataValue);
 
-	if (ReadWord) {
-		// Write UCHAR
-	}
-	else {
-		// Write BYTE
-	}
+    if (ReadWord) {
+        // Write UCHAR
+    } else {
+        // Write BYTE
+    }
 
 	EmuSwapFS();	// Xbox FS
 
 	return STATUS_SUCCESS;
 }
+
 
 // ******************************************************************
 // * 0x0031 - HalReturnToFirmware
@@ -1885,27 +1810,6 @@ XBSYSAPI EXPORTNUM(95) VOID NTAPI xboxkrnl::KeBugCheck
 }
 
 // ******************************************************************
-// * KeConnectInterrupt
-// ******************************************************************
-XBSYSAPI EXPORTNUM(98) xboxkrnl::LONG NTAPI xboxkrnl::KeConnectInterrupt
-(
-	IN PKINTERRUPT  InterruptObject
-	)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	DbgPrintf("EmuKrnl (0x%X): KeConnectInterrupt\n"
-		"(\n"
-		"   InterruptObject   : 0x%.08X\n"
-		");\n",
-		GetCurrentThreadId(), InterruptObject);
-
-	EmuSwapFS();	// Xbox FS
-
-	return 0;
-}
-
-// ******************************************************************
 // * 0x0063 - KeDelayExecutionThread
 // ******************************************************************
 XBSYSAPI EXPORTNUM(99) xboxkrnl::NTSTATUS NTAPI xboxkrnl::KeDelayExecutionThread
@@ -1953,45 +1857,14 @@ XBSYSAPI EXPORTNUM(107) VOID NTAPI xboxkrnl::KeInitializeDpc
            GetCurrentThreadId(), Dpc, DeferredRoutine, DeferredContext);
 
     // inialize Dpc field values
-    Dpc->Number = 0;
     Dpc->DeferredRoutine = DeferredRoutine;
     Dpc->Type = DpcObject;
     Dpc->DeferredContext = DeferredContext;
+    Dpc->Inserted = FALSE;
 
     EmuSwapFS();   // Xbox FS
 
     return;
-}
-
-// ******************************************************************
-// * 0x006D - KeInitializeInterrupt
-// ******************************************************************
-XBSYSAPI EXPORTNUM(109) VOID NTAPI xboxkrnl::KeInitializeInterrupt
-(
-    OUT PKINTERRUPT Interrupt,
-    IN PKSERVICE_ROUTINE ServiceRoutine,
-    IN PVOID ServiceContext,
-    IN ULONG Vector,
-    IN KIRQL Irql,
-    IN KINTERRUPT_MODE InterruptMode,
-    IN BOOLEAN ShareVector
-)
-{
-	EmuSwapFS();   // Win2k/XP FS
-
-    DbgPrintf("EmuKrnl (0x%X): KeInitializeInterrupt\n"
-           "(\n"
-           "   Interrupt           : 0x%.08X\n"
-           "   ServiceRoutine      : 0x%.08X\n"
-           "   ServiceContext      : 0x%.08X\n"
-		   "   Vector              : 0x%.08X\n"
-		   "   Irql                : 0x%.08X\n"
-		   "   InterruptMode       : 0x%.08X\n"
-		   "   ShareVector         : 0x%.08X\n"
-           ");\n",
-           GetCurrentThreadId(), Interrupt, ServiceRoutine, ServiceContext, Vector, Irql, InterruptMode, ShareVector);
-
-    EmuSwapFS();   // Xbox FS
 }
 
 // ******************************************************************
@@ -3695,7 +3568,7 @@ XBSYSAPI EXPORTNUM(218) xboxkrnl::NTSTATUS NTAPI xboxkrnl::NtQueryVolumeInformat
            Length, FileInformationClass);
 
     // Safety/Sanity Check
-    if(FileInformationClass != FileFsSizeInformation)
+		if ((FileInformationClass != FileFsSizeInformation) && (FileInformationClass != FileDirectoryInformation))
         CxbxKrnlCleanup("NtQueryVolumeInformationFile: Unsupported FileInformationClass");
 
     NTSTATUS ret = NtDll::NtQueryVolumeInformationFile

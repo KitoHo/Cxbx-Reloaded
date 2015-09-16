@@ -295,11 +295,7 @@ static DWORD WINAPI EmuRenderWindow(LPVOID lpVoid)
 
     // register window class
     {
-        #ifdef _DEBUG
         HMODULE hCxbxDll = GetModuleHandle("CxbxKrnl.dll");
-        #else
-        HMODULE hCxbxDll = GetModuleHandle("Cxbx.dll");
-        #endif
 
         LOGBRUSH logBrush = {BS_SOLID, RGB(0,0,0)};
 
@@ -1039,8 +1035,12 @@ static DWORD WINAPI EmuCreateDeviceProxy(LPVOID)
 // check if a resource has been registered yet (if not, register it)
 static void EmuVerifyResourceIsRegistered(XTL::X_D3DResource *pResource)
 {
+		// Crash Bandicoot WOC tries to do this.
+		if (pResource == nullptr)
+			return;
+
     // 0xEEEEEEEE and 0xFFFFFFFF are somehow set in Halo :(
-    if(pResource == 0 || pResource->Lock != 0 && pResource->Lock != 0xEEEEEEEE && pResource->Lock != 0xFFFFFFFF)
+    if(pResource->Lock != 0 && pResource->Lock != 0xEEEEEEEE && pResource->Lock != 0xFFFFFFFF)
         return;
 
     // Already "Registered" implicitly
@@ -1604,7 +1604,6 @@ HRESULT WINAPI XTL::EmuIDirect3DDevice8_SelectVertexShader
             EmuWarning("g_VertexShaderSlots[%d] = 0", Address);
         }
     }
-	
 
     EmuSwapFS();   // XBox FS
 
@@ -3219,7 +3218,9 @@ HRESULT WINAPI XTL::EmuIDirect3DDevice8_CreateTexture
 
 //        if(Usage & (D3DUSAGE_RENDERTARGET | D3DUSAGE_DEPTHSTENCIL))
         if(Usage & (D3DUSAGE_RENDERTARGET))
+        {
 			PCPool = D3DPOOL_DEFAULT;
+        }
 
         hRet = g_pD3DDevice8->CreateTexture
         (
@@ -5317,7 +5318,6 @@ ULONG WINAPI XTL::EmuIDirect3DResource8_Release
                 g_YuvSurface = NULL;
 
             // free memory associated with this special resource handle
-			DbgPrintf( "pThis->Lock == 0x%.08X\n", dwPtr );
             CxbxFree((PVOID)dwPtr);
         }
 
@@ -5940,7 +5940,7 @@ HRESULT WINAPI XTL::EmuIDirect3DTexture8_GetSurfaceLevel
            ");\n",
            GetCurrentThreadId(), pThis, Level, ppSurfaceLevel);
 
-	HRESULT hRet = -1;
+    HRESULT hRet = -1;
 
     EmuVerifyResourceIsRegistered(pThis);
 
@@ -5986,7 +5986,7 @@ HRESULT WINAPI XTL::EmuIDirect3DTexture8_GetSurfaceLevel
 
     EmuSwapFS();   // XBox FS
 
-	    return hRet;
+    return hRet;
 }
 
 // ******************************************************************
@@ -7791,7 +7791,6 @@ HRESULT WINAPI XTL::EmuIDirect3DDevice8_SetVertexShader
 			printf( "EmuWarning: Handle = 0x%.08X\n", RealHandle );
 		RealHandle = Handle;
     }
-
     hRet = g_pD3DDevice8->SetVertexShader(RealHandle);
 
     EmuSwapFS();   // XBox FS
@@ -9079,25 +9078,6 @@ HRESULT WINAPI XTL::EmuIDirect3DDevice8_SetDepthClipPlanes
 }
 
 // ******************************************************************
-// * func: EmuD3D::LazySetPointParams
-// ******************************************************************
-void WINAPI XTL::EmuD3D_LazySetPointParams(void* Device)
-{
-	EmuSwapFS();   // Win2k/XP FS
-
-	DbgPrintf("EmuD3D8 (0x%X): EmuD3D_LazySetPointParams\n"
-		"(\n"
-		"   Device              : 0x%.08X\n"
-		");\n",
-		GetCurrentThreadId(), Device);
-
-	// Don't emulate this! Just look at the stack trace and go from there!
-	__asm int 3;
-
-	EmuSwapFS();   // XBox FS
-}
-
-// ******************************************************************
 // * func: EmuIDirect3D8_AllocContiguousMemory
 // ******************************************************************
 PVOID WINAPI XTL::EmuIDirect3D8_AllocContiguousMemory
@@ -9366,7 +9346,7 @@ VOID WINAPI XTL::EmuIDirect3DResource8_BlockUntilNotBusy
     X_D3DResource *pThis
 )
 {
-    EmuSwapFS();   // Win2k/XP FS
+    // EmuSwapFS();   // Win2k/XP FS
 
     DbgPrintf("EmuD3D8 (0x%X): EmuIDirect3DResource8_BlockUntilNotBusy\n"
            "(\n"
@@ -9376,7 +9356,9 @@ VOID WINAPI XTL::EmuIDirect3DResource8_BlockUntilNotBusy
 
     // TODO: Implement
 
-    EmuSwapFS();   // XBox FS
+    // EmuSwapFS();   // XBox FS
+
+    return;
 }
 
 // ******************************************************************
@@ -10602,26 +10584,6 @@ HRESULT WINAPI XTL::EmuIDirect3DDevice8_GetBackMaterial(D3DMATERIAL8* pMaterial)
 
 	if( pMaterial )
 		g_pD3DDevice8->GetMaterial( pMaterial );
-
-	EmuSwapFS();	// Xbox FS
-
-	return S_OK;
-}
-
-// ******************************************************************
-// * func: EmuIDirect3DDevice8_GetMaterial
-// ******************************************************************
-HRESULT WINAPI XTL::EmuIDirect3DDevice8_GetMaterial(D3DMATERIAL8* pMaterial)
-{
-	EmuSwapFS();	// Win2k/XP FS
-
-	DbgPrintf("EmuD3D8 (0x%X): EmuIDirect3DDevice8_GetMaterial\n"
-		"(\n"
-		"   pMaterial         : 0x%.08X\n"
-		");\n", GetCurrentThreadId(), pMaterial);
-
-	if (pMaterial)
-		g_pD3DDevice8->GetMaterial(pMaterial);
 
 	EmuSwapFS();	// Xbox FS
 

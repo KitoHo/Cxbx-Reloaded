@@ -269,7 +269,7 @@ HRESULT WINAPI XTL::EmuDirectSoundCreate
     HRESULT hRet = DS_OK;
 
 	// Set this flag when this function is called
-	g_bDSoundCreateCalled = true;
+	g_bDSoundCreateCalled = TRUE;
 
     if(!initialized || !g_pDSound8)
     {
@@ -1711,7 +1711,7 @@ HRESULT WINAPI XTL::EmuDirectSoundCreateStream
 				g_pDSoundStreamCache[v] = 0;
 
 			// Let's count DirectSound as being initialized now
-			g_bDSoundCreateCalled = true;
+			g_bDSoundCreateCalled = TRUE;
 		}
 		else
 			EmuWarning("DirectSound not initialized!");

@@ -1,6 +1,5 @@
 /*==========================================================================;
  *
- *  Copyright (C) Microsoft Corporation.  All Rights Reserved. 
  *
  *  File:       d3dcaps.h
  *  Content:    Direct3D capabilities include file

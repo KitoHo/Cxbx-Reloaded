@@ -704,8 +704,8 @@ typedef VOID (*PKDEFERRED_ROUTINE)
 typedef struct _KDPC
 {
     CSHORT              Type;               // 0x00
-    UCHAR               Number;             // 0x02
-    UCHAR               Importance;         // 0x03
+    BOOLEAN             Inserted;           // 0x02
+    BYTE                Padding;            // 0x03
     LIST_ENTRY          DpcListEntry;       // 0x04
     PKDEFERRED_ROUTINE  DeferredRoutine;    // 0x0C
     PVOID               DeferredContext;
@@ -722,36 +722,6 @@ typedef enum _KOBJECTS
     DpcObject = 0x13,
 }
 KOBJECTS, *PKOBJECTS;
-
-// ******************************************************************
-// * KINTERRUPR
-// ******************************************************************
-typedef struct _KINTERRUPT
-{
-	unsigned char     UnknownA[0x0C];
-	unsigned char     KIRQL;
-	unsigned char     PaddingA[0x03];
-	unsigned char     UnknownB[0x08];
-	unsigned char     ISR[0x58];
-}
-KINTERRUPT, *PKINTERRUPT;
-
-// ******************************************************************
-// * PKSERVICE_ROUTINE
-// ******************************************************************
-typedef void* PKSERVICE_ROUTINE;
-
-typedef CHAR KIRQL;
-
-// ******************************************************************
-// * KINTERRUPT_MODE
-// ******************************************************************
-typedef enum _KINTERRUPT_MODE
-{
-	LevelSensitive,
-	Latched,
-}
-KINTERRUPT_MODE;
 
 // ******************************************************************
 // * RTL_CRITICAL_SECTION

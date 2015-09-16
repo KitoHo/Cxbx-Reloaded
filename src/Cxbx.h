@@ -34,11 +34,6 @@
 #ifndef CXBX_H
 #define CXBX_H
 
-// VS 2015 hack
-#ifndef POINTER_64
-#define POINTER_64 __ptr64
-#endif
-
 /*! CxbxKrnl exports, others import */
 #ifndef _CXBXKRNL_INTERNAL
 #define CXBXKRNL_API __declspec(dllimport)
@@ -89,9 +84,9 @@ typedef signed long    sint32;
 
 /*! version string dependent on trace flag */
 #ifndef _DEBUG_TRACE
-#define _CXBX_VERSION "0.8.1-Reloaded"
+#define _CXBX_VERSION "0.0.1-Preview"
 #else
-#define _CXBX_VERSION "0.8.1-Reloaded-Trace"
+#define _CXBX_VERSION "0.0.1-Preview-Trace"
 #endif
 
 /*! debug mode choices */

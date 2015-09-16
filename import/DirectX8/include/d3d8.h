@@ -1,6 +1,5 @@
 /*==========================================================================;
  *
- *  Copyright (C) Microsoft Corporation.  All Rights Reserved.
  *
  *  File:   d3d8.h
  *  Content:    Direct3D include file
@@ -24,7 +23,7 @@
  * to be rebuilt. If the version doesn't match, Direct3DCreate8 will fail.
  * (The number itself has no meaning.)*/
 
-#define D3D_SDK_VERSION 220
+#define D3D_SDK_VERSION 120
 
 
 #include <stdlib.h>
@@ -1183,8 +1182,6 @@ typedef struct IDirect3DVolume8 *LPDIRECT3DVOLUME8, *PDIRECT3DVOLUME8;
 #define D3DCREATE_SOFTWARE_VERTEXPROCESSING     0x00000020L
 #define D3DCREATE_HARDWARE_VERTEXPROCESSING     0x00000040L
 #define D3DCREATE_MIXED_VERTEXPROCESSING        0x00000080L
-
-#define D3DCREATE_DISABLE_DRIVER_MANAGEMENT     0x00000100L
 
 
 /****************************************************************************

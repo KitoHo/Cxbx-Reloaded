@@ -105,8 +105,7 @@ __declspec(naked) void EmuMZEaxFs24()
 void EmuInitFS()
 {
 	DWORD sizeOfImage = CxbxKrnl_XbeHeader->dwSizeofImage;
-
-	for (uint32 addr = 0x11000; addr < sizeOfImage + 0x011000; addr++)
+	for (uint32 addr = CxbxKrnl_XbeHeader->dwBaseAddr; addr < sizeOfImage +	CxbxKrnl_XbeHeader->dwBaseAddr; addr++)
 	{
 		switch (*(uint32*)addr)
 		{
