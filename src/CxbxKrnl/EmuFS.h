@@ -34,6 +34,7 @@
 #ifndef EMUFS_H
 #define EMUFS_H
 
+#include <vector>
 #include "Common/Xbe.h"
 
 // word @ FS:[0x14] := wSwapFS
@@ -99,5 +100,11 @@ static inline void EmuSwapFS()
         dwInterceptionCount = 0;
     }
 }
+
+typedef struct 
+{
+	std::vector<uint08> data;
+	void* functionPtr;
+}fs_instruction_t;
 
 #endif
