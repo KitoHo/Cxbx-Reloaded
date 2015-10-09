@@ -56,9 +56,7 @@ __declspec(naked) void EmuCmpEsiFs00()
 	__asm
 	{
 			push eax
-			pushf
 			mov eax, fs : [0x14]
-			popf
 			cmp esi, [eax]
 			pop eax
 	}
